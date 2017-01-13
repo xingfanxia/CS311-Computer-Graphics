@@ -72,7 +72,7 @@ must remember to call texDestroy when finished with the texture. */
 up with their rows and columns switched, so that their width and height are 
 flipped. If that's happening with your image, then use a different image. */
 int texInitializeFile(texTexture *tex, const char *path) {
-	// Use the STB image library to load the file as unsigned chars.
+	// Use the STB image library 0to load the file as unsigned chars.
 	unsigned char *rawData;
 	int x, y, z, newInd, oldInd;
 	rawData = stbi_load(path, &(tex->width), &(tex->height), &(tex->texelDim), 
@@ -193,8 +193,32 @@ void texSample(texTexture *tex, double s, double t) {
 	if (tex->filtering == texQUADRATIC) {
 		/* Replace this nearest-neighbor filtering with quadratic!! */
 		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
-	} else
-		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
+	} else{
+		double uFrac = u - (int)floor(u);
+		double vFrac = v - (int)floor(v);
+
+		texGetTexel(tex, (int)ceil(u), (int)ceil(v), tex->sample);
+		vecScale(2, uFrac * vFrac, tex->sample, tex->aux);
+		double *upperRight = tex->aux;
+
+		texGetTexel(tex, (int)ceil(u), (int)floor(v), tex->sample);
+		vecScale(2, uFrac * (1 - vFrac), tex->sample, tex->aux);
+		double *lowerRight = tex->aux;
+
+		texGetTexel(tex, (int)floor(u), (int)ceil(v), tex->sample);
+		vecScale(2, (1 - uFrac) * vFrac, tex->sample, tex->aux);
+		double *upperleft = tex->aux;
+
+		texGetTexel(tex, (int)floor(u), (int)floor(v), tex->sample);
+		vecScale(2, (1 - uFrac) * (1 - vFrac), tex->sample, tex->aux);
+		double *lowerleft = tex->aux;
+
+		double *temp;
+		vecAdd(2, upperRight, lowerRight, tex->aux);
+		vecAdd(2, tex->aux, upperleft, temp);
+		vecAdd(2, temp, lowerleft, tex->sample);
+		// texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
+	}
 }
 
 

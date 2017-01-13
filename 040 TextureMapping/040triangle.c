@@ -6,10 +6,10 @@
 #include "040texture.c"
 
 //To Generate Color at vector x by applying formulae learnt in class
-double *interpolating(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3],
-		double alpha[3], double beta[3], double gamma[3]) {
+double *getSTcoordinates(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3],
+		double alpha[2], double beta[2], double gamma[2]) {
 
-	double new_rgb[3];
+	double coordinates[3];
 	double m[2][2] = {
 		{b[0]-a[0], c[0]-a[0]},
 		{b[1]-a[1], c[1]-a[1]}
@@ -24,15 +24,13 @@ double *interpolating(double x0, double x1, double a[2], double b[2], double c[2
 	mat221Multiply(Inv,vec,pq);
 	// vectorPp(pq);
 	if (det != 0) {
-		new_rgb[0] = (alpha[0] + pq[0]*(beta[0]-alpha[0])+pq[1]*(gamma[0]-alpha[0]))*rgb[0];
-		new_rgb[1] = (alpha[1] + pq[0]*(beta[1]-alpha[1])+pq[1]*(gamma[1]-alpha[1]))*rgb[1];
-		new_rgb[2] = (alpha[2] + pq[0]*(beta[2]-alpha[2])+pq[1]*(gamma[2]-alpha[2]))*rgb[2];
-		// vectorPp(new_rgb);
-		return new_rgb;
+		coordinates[0] = alpha[0] + pq[0]*(beta[0]-alpha[0])+pq[1]*(gamma[0]-alpha[0]);
+		coordinates[1] = alpha[1] + pq[0]*(beta[1]-alpha[1])+pq[1]*(gamma[1]-alpha[1]);
+		return coordinates;
 	} else {
 		printf("The matrix doesn't have an Inverse, something is wrong here\n");
-		double null_rgb[3] = {0.0, 0.0, 0.0};
-		return null_rgb;
+		double null_coordinates[2] = {0.0, 0.0};
+		return null_coordinates;
 	}
 }
 
@@ -40,7 +38,7 @@ double *interpolating(double x0, double x1, double a[2], double b[2], double c[2
 a counter-clockwise order and with each pixel's color interpolated 
 using the formulae we learnt in class.*/
 void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTexture *tex, 
-		double alpha[3], double beta[3], double gamma[3]) {
+		double alpha[2], double beta[2], double gamma[2]) {
 	
     double a0 = a[0];
     double a1 = a[1];
@@ -48,7 +46,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
     double b1 = b[1];
     double c0 = c[0];
     double c1 = c[1];
-    double *new_rgb;
+    double *STvalue;
     double *sampleRGB;
 	//c0<b0, so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (c0 <= b0){ 
@@ -71,7 +69,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					texSample(tex, x0, x1);
+					STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					texSample(tex, STvalue[0], STvalue[1]);
 					sampleRGB = tex->sample;
 					sampleRGB[0] *= rgb[0];
 					sampleRGB[1] *= rgb[1];
@@ -96,7 +95,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					texSample(tex, x0, x1);
+					STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					texSample(tex, STvalue[0], STvalue[1]);
 					sampleRGB = tex->sample;
 					sampleRGB[0] *= rgb[0];
 					sampleRGB[1] *= rgb[1];
@@ -122,7 +122,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					texSample(tex, x0, x1);
+					STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					texSample(tex, STvalue[0], STvalue[1]);
 					sampleRGB = tex->sample;
 					sampleRGB[0] *= rgb[0];
 					sampleRGB[1] *= rgb[1];
@@ -138,7 +139,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-					texSample(tex, x0, x1);
+					STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					texSample(tex, STvalue[0], STvalue[1]);
 					sampleRGB = tex->sample;
 					sampleRGB[0] *= rgb[0];
 					sampleRGB[1] *= rgb[1];
@@ -158,7 +160,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-				texSample(tex, x0, x1);
+				STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+				texSample(tex, STvalue[0], STvalue[1]);
 				sampleRGB = tex->sample;
 				sampleRGB[0] *= rgb[0];
 				sampleRGB[1] *= rgb[1];
@@ -174,7 +177,8 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-				texSample(tex, x0, x1);
+				STvalue = getSTcoordinates(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+				texSample(tex, STvalue[0], STvalue[1]);
 				sampleRGB = tex->sample;
 				sampleRGB[0] *= rgb[0];
 				sampleRGB[1] *= rgb[1];

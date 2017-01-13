@@ -12,7 +12,6 @@ All vertices must be entered in a counter-clockwise order
 #include "030vector.c"
 #include <stdio.h>
 #include <math.h>
-// #include "stb_image.h"
 
 int main(void) {
 	//Code taken from 000linking.c Basically drawing the canvas here
@@ -22,26 +21,19 @@ int main(void) {
 		//Then paint the screen dark and draw triangles using triRender
 		pixClearRGB(0.0, 0.0, 0.0);
 
-		// double a[2] = {0, 0};
-		// double b[2] = {100, 200};
-		// double c[2] = {50, 300};
-		// double bg[3] = {1.0, 1.0, 1.0};
-		// double alpha[3] = {1.0,0.0,0.0};
-		// double beta[3] = {0.0,1.0,0.0};
-	 //    double gamma[3] = {0.0,0.0,1.0};
-		// triRender(a,b,c,bg,alpha,beta,gamma);
 		texTexture *tex;
+		tex->filtering = 1;
 		double a[2] = {300,300};
 		double b[2] = {50,300};
 		double c[2] = {200,0};
 		double bg[3] = {1.0,1.0,1.0};
-		double alpha[3] = {1.0,0.0,0.0};
-		double beta[3] = {0.0,1.0,0.0};
-	    double gamma[3] = {0.0,0.0,1.0};
+		double alpha[2] = {0.0,0.5};
+		double beta[2] = {1.0,1.0};
+	    double gamma[2] = {0.0,1.0};
 	    texInitializeFile(tex, "sf.png");
 		triRender(a,b,c,bg,tex,alpha,beta,gamma);
-		pixRun();
 		texDestroy(tex);
+		pixRun();
 		return 0;
 	}	
 }
