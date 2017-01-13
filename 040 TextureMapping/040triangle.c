@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <math.h>
 #include "000pixel.h"
+#include "040texture.c"
 
 //To Generate Color at vector x by applying formulae learnt in class
-double *interpolating(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3], 
+double *interpolating(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3],
 		double alpha[3], double beta[3], double gamma[3]) {
 
 	double new_rgb[3];
@@ -38,7 +39,7 @@ double *interpolating(double x0, double x1, double a[2], double b[2], double c[2
 /* triRenderAleft rasterizes a triangle whose vertices are given in 
 a counter-clockwise order and with each pixel's color interpolated 
 using the formulae we learnt in class.*/
-void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], 
+void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTexture *tex, 
 		double alpha[3], double beta[3], double gamma[3]) {
 	
     double a0 = a[0];
@@ -48,6 +49,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
     double c0 = c[0];
     double c1 = c[1];
     double *new_rgb;
+    double *sampleRGB;
 	//c0<b0, so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (c0 <= b0){ 
 
@@ -69,8 +71,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+					texSample(tex, x0, x1);
+					sampleRGB = tex->sample;
+					sampleRGB[0] *= rgb[0];
+					sampleRGB[1] *= rgb[1];
+					sampleRGB[2] *= rgb[2];
+					pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 				}
 			}
         /*case2: B and C on the same y-axis*/
@@ -90,8 +96,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+					texSample(tex, x0, x1);
+					sampleRGB = tex->sample;
+					sampleRGB[0] *= rgb[0];
+					sampleRGB[1] *= rgb[1];
+					sampleRGB[2] *= rgb[2];
+					pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 				}
 			}
 		/*case3: B in the middle of A and B in terms of x-coordinates*/
@@ -112,8 +122,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+					texSample(tex, x0, x1);
+					sampleRGB = tex->sample;
+					sampleRGB[0] *= rgb[0];
+					sampleRGB[1] *= rgb[1];
+					sampleRGB[2] *= rgb[2];
+					pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 				}
 			}
 			for (x0=(int)floor(c0)+1; x0<=(int)floor(b0); x0++){
@@ -124,8 +138,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+					texSample(tex, x0, x1);
+					sampleRGB = tex->sample;
+					sampleRGB[0] *= rgb[0];
+					sampleRGB[1] *= rgb[1];
+					sampleRGB[2] *= rgb[2];
+					pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 				}
 			}
 		}
@@ -140,8 +158,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-				new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-				pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+				texSample(tex, x0, x1);
+				sampleRGB = tex->sample;
+				sampleRGB[0] *= rgb[0];
+				sampleRGB[1] *= rgb[1];
+				sampleRGB[2] *= rgb[2];
+				pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 			}
 		}
 		for (x0=(int)floor(b0)+1; x0<=(int)floor(c0); x0++){
@@ -152,8 +174,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-				new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
-				pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
+				texSample(tex, x0, x1);
+				sampleRGB = tex->sample;
+				sampleRGB[0] *= rgb[0];
+				sampleRGB[1] *= rgb[1];
+				sampleRGB[2] *= rgb[2];
+				pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 			}
 
 		}
@@ -164,13 +190,13 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 /*triRender is a dummy functio that calls the triRenderAleft which
 is the actual method that does the drawing and pass the vertices in
 correct order*/
-void triRender(double a[2], double b[2], double c[2], double rgb[3], 
+void triRender(double a[2], double b[2], double c[2], double rgb[3], texTexture *tex,
 		double alpha[3], double beta[3], double gamma[3]) { 
 	if (a[0] < b[0] && a[0] < c[0]) {
-		triRenderALeft(a, b, c, rgb, alpha, beta, gamma);
+		triRenderALeft(a, b, c, rgb, tex, alpha, beta, gamma);
 	} else if (b[0] < a[0] && b[0] < c[0]) {
-		triRenderALeft(b, c, a, rgb, alpha, beta, gamma);
+		triRenderALeft(b, c, a, rgb, tex, alpha, beta, gamma);
 	} else if (c[0] < a[0] && c[0] < b[0]) {
-		triRenderALeft(c, a, b, rgb, alpha, beta, gamma);
+		triRenderALeft(c, a, b, rgb, tex, alpha, beta, gamma);
 	}
 }

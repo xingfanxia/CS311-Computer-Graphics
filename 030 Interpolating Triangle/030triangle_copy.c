@@ -5,10 +5,9 @@
 #include "000pixel.h"
 
 //To Generate Color at vector x by applying formulae learnt in class
-double *interpolating(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3], 
-		double alpha[3], double beta[3], double gamma[3]) {
+void interpolating(double x0, double x1, double a[2], double b[2], double c[2], double rgb[3], 
+		double alpha[3], double beta[3], double gamma[3], double new_rgb[3]) {
 
-	double new_rgb[3];
 	double m[2][2] = {
 		{b[0]-a[0], c[0]-a[0]},
 		{b[1]-a[1], c[1]-a[1]}
@@ -26,12 +25,8 @@ double *interpolating(double x0, double x1, double a[2], double b[2], double c[2
 		new_rgb[0] = (alpha[0] + pq[0]*(beta[0]-alpha[0])+pq[1]*(gamma[0]-alpha[0]))*rgb[0];
 		new_rgb[1] = (alpha[1] + pq[0]*(beta[1]-alpha[1])+pq[1]*(gamma[1]-alpha[1]))*rgb[1];
 		new_rgb[2] = (alpha[2] + pq[0]*(beta[2]-alpha[2])+pq[1]*(gamma[2]-alpha[2]))*rgb[2];
-		// vectorPp(new_rgb);
-		return new_rgb;
 	} else {
 		printf("The matrix doesn't have an Inverse, something is wrong here\n");
-		double null_rgb[3] = {0.0, 0.0, 0.0};
-		return null_rgb;
 	}
 }
 
@@ -69,7 +64,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 				}
 			}
@@ -90,7 +85,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 				}
 			}
@@ -112,7 +107,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 				}
 			}
@@ -124,7 +119,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 				x1_high = c1+(b1-c1)/(b0-c0)*(x0-c0);
 				int x1;
 				for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-					new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+					interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 					pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 				}
 			}
@@ -140,7 +135,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){
-				new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+				interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 				pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 			}
 		}
@@ -152,7 +147,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
 			x1_high = a1+(c1-a1)/(c0-a0)*(x0-a0);
 			int x1;
 			for (x1=(int)ceil(x1_low); x1<=(int)floor(x1_high); x1++){	
-				new_rgb = interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma);
+				interpolating(x0, x1, a, b, c, rgb, alpha, beta, gamma, new_rgb);
 				pixSetRGB(x0,x1,new_rgb[0],new_rgb[1],new_rgb[2]);
 			}
 
