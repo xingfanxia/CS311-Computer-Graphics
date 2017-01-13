@@ -40,14 +40,14 @@ using the formulae we learnt in class.*/
 void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTexture *tex, 
 		double alpha[2], double beta[2], double gamma[2]) {
 	
-    double a0 = a[0];
-    double a1 = a[1];
-    double b0 = b[0];
-    double b1 = b[1];
-    double c0 = c[0];
-    double c1 = c[1];
-    double *STvalue;
-    double *sampleRGB;
+	double a0 = a[0];
+	double a1 = a[1];
+	double b0 = b[0];
+	double b1 = b[1];
+	double c0 = c[0];
+	double c1 = c[1];
+	double *STvalue;
+	double *sampleRGB;
 	//c0<b0, so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (c0 <= b0){ 
 
@@ -78,10 +78,10 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 					pixSetRGB(x0,x1,sampleRGB[0],sampleRGB[1],sampleRGB[2]);
 				}
 			}
-        /*case2: B and C on the same y-axis*/
+		/*case2: B and C on the same y-axis*/
 		} else if (c0 == b0){
 			/* Some triangle
-			             C
+						 C
 
 		
 						 B
@@ -107,7 +107,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 		/*case3: B in the middle of A and B in terms of x-coordinates*/
 		} else {
 			/* Some triangle
-			      C
+				  C
 
 		
 						 B
