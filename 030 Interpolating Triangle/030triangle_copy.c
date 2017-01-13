@@ -42,7 +42,7 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3],
     double b1 = b[1];
     double c0 = c[0];
     double c1 = c[1];
-    double *new_rgb;
+    double new_rgb[3];
 	//c0<b0, so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (c0 <= b0){ 
 

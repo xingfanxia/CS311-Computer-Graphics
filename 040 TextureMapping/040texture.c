@@ -194,30 +194,23 @@ void texSample(texTexture *tex, double s, double t) {
 		/* Replace this nearest-neighbor filtering with quadratic!! */
 		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
 	} else{
-		// double uFrac = u - (int)floor(u);
-		// double vFrac = v - (int)floor(v);
+		double uFrac = u - floor(u);
+		double vFrac = v - (int)floor(v);
 
-		// texGetTexel(tex, (int)ceil(u), (int)ceil(v), tex->sample);
-		// vecScale(2, uFrac * vFrac, tex->sample, tex->aux);
-		// double *upperRight = tex->aux;
+		texGetTexel(tex, (int)ceil(u), (int)ceil(v), tex->sample);
+		vecScale(tex->texelDim, uFrac * vFrac, tex->sample, tex->sample);
 
-		// texGetTexel(tex, (int)ceil(u), (int)floor(v), tex->sample);
-		// vecScale(2, uFrac * (1 - vFrac), tex->sample, tex->aux);
-		// double *lowerRight = tex->aux;
+		texGetTexel(tex, (int)ceil(u), (int)floor(v), tex->aux);
+		vecScale(tex->texelDim, uFrac * (1 - vFrac), tex->aux, tex->aux);
+		vecAdd(tex->texelDim, tex->sample, tex->aux, tex->sample);
 
-		// texGetTexel(tex, (int)floor(u), (int)ceil(v), tex->sample);
-		// vecScale(2, (1 - uFrac) * vFrac, tex->sample, tex->aux);
-		// double *upperleft = tex->aux;
+		texGetTexel(tex, (int)floor(u), (int)ceil(v), tex->aux);
+		vecScale(tex->texelDim, (1 - uFrac) * vFrac, tex->aux, tex->aux);
+		vecAdd(tex->texelDim, tex->sample, tex->aux, tex->sample);
 
-		// texGetTexel(tex, (int)floor(u), (int)floor(v), tex->sample);
-		// vecScale(2, (1 - uFrac) * (1 - vFrac), tex->sample, tex->aux);
-		// double *lowerleft = tex->aux;
-
-		// double *temp;
-		// vecAdd(2, upperRight, lowerRight, tex->aux);
-		// vecAdd(2, tex->aux, upperleft, temp);
-		// vecAdd(2, temp, lowerleft, tex->sample);
-		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
+		texGetTexel(tex, (int)floor(u), (int)floor(v), tex->aux);
+		vecScale(tex->texelDim, (1 - uFrac) * (1 - vFrac), tex->aux, tex->aux);
+		vecAdd(tex->texelDim, tex->sample, tex->aux, tex->sample);
 	}
 }
 

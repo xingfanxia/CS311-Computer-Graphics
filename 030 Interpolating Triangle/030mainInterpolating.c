@@ -5,13 +5,13 @@ clang 030mainInterpolating.c 000pixel.o -lglfw -framework OpenGL; ./a.out
 Note:
 All vertices must be entered in a counter-clockwise order
 */
-
-#include "000pixel.h"
-#include "030matrix.c"
-#include "030triangle.c"
-#include "030vector.c"
 #include <stdio.h>
 #include <math.h>
+#include "000pixel.h"
+#include "030matrix.c"
+#include "030vector.c"
+#include "030triangle_copy.c"
+
 int main(void) {
 	//Code taken from 000linking.c Basically drawing the canvas here
 	if (pixInitialize(512, 512, "Pixel Graphics") != 0)

@@ -27,9 +27,3 @@ void vecScale(int dim, double c, double w[], double cTimesW[]) {
     cTimesW[i] = c *w[i];
     }	
 }
-
-// void vectorPp(double v[3]) {
-// 	for (int i = 0; i < 3; i++) {
-// 		printf("%f\n", v[i]);
-// 	}
-// }
