@@ -5,12 +5,11 @@ clang 040mainTexturing.c 000pixel.o -lglfw -framework OpenGL; ./a.out
 Note:
 All vertices must be entered in a counter-clockwise order
 */
-
+#include <stdio.h>
+#include <math.h>
 #include "000pixel.h"
 #include "030matrix.c"
 #include "030vector.c"
-#include <stdio.h>
-#include <math.h>
 #include "040texture.c"
 #include "040triangle.c"
 

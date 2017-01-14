@@ -1,8 +1,5 @@
 //Xingfan Xia, January 12th
 //me the classes I have missed for starting this class in the middle of second week
-#include <stdio.h>
-#include <math.h>
-#include "000pixel.h"
 
 //To Generate Color at vector x by applying formulae learnt in class
 void interpolating(double x[2], double a[2], double b[2], double c[2], double rgb[3], 
