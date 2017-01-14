@@ -1,4 +1,4 @@
-//Xingfan Xia, January 12th, With the help from Yanhan Lyu for teaching
+//Xingfan Xia, January 12th
 //me the classes I have missed for starting this class in the middle of second week
 
 
@@ -14,6 +14,7 @@ void getSTcoordinates(double x[2], double a[2], double b[2], double c[2], double
 		{0.0,0.0},
 		{0.0,0.0}
 	};	
+	//apply interpolation formula learnt in class
 	double det = mat22Invert(m,Inv);
 	double vec[2] = {x[0]-a[0], x[1]-a[1]};
 	double pq[2] = {0.0, 0.0};
@@ -27,8 +28,8 @@ void getSTcoordinates(double x[2], double a[2], double b[2], double c[2], double
 }
 
 /* triRenderAleft rasterizes a triangle whose vertices are given in 
-a counter-clockwise order and with each pixel's color interpolated 
-using the formulae we learnt in class.*/
+a counter-clockwise order and with each pixel's rgb interpolated by
+texture coord and unif background.*/
 void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTexture *tex, 
 		double alpha[2], double beta[2], double gamma[2]) {
 	
@@ -54,9 +55,13 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 				x1_low = a[1]+(b[1]-a[1])/(b[0]-a[0])*(x[0]-a[0]);
 				x1_high = c[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
+					//get s and t
 					getSTcoordinates(x, a, b, c, rgb, alpha, beta, gamma, STvalue);
+					//get tex sample from tex coord s and t
 					texSample(tex, STvalue[0], STvalue[1]);
 					sampleRGB = tex->sample;
+
+					//Modulate by Unif
 					sampleRGB[0] *= rgb[0];
 					sampleRGB[1] *= rgb[1];
 					sampleRGB[2] *= rgb[2];

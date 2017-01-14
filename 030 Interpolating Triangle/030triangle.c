@@ -1,4 +1,4 @@
-//Xingfan Xia, January 12th, With the help from Yanhan Lyu for teaching
+//Xingfan Xia, January 12th
 //me the classes I have missed for starting this class in the middle of second week
 #include <stdio.h>
 #include <math.h>
@@ -15,7 +15,9 @@ void interpolating(double x[2], double a[2], double b[2], double c[2], double rg
 	double Inv[2][2] = {
 		{0.0,0.0},
 		{0.0,0.0}
-	};	
+	};
+
+	//apply interpolation formula learnt in class
 	double det = mat22Invert(m,Inv);
 	double vec[2] = {x[0]-a[0], x[1]-a[1]};
 	double pq[2] = {0.0, 0.0};

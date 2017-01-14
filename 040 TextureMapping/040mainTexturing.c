@@ -1,4 +1,4 @@
-//Xingfan Xia, Test for 040texture.c
+//Xingfan Xia, Jan 13th
 /* Torun:
 clang 040mainTexturing.c 000pixel.o -lglfw -framework OpenGL; ./a.out
 
@@ -18,6 +18,7 @@ All vertices must be entered in a counter-clockwise order
 texTexture texture;
 texTexture *tex;
 
+// This method clears the screen and draw stuff
 void draw() {
 	pixClearRGB(0.0, 0.0, 0.0);
 	double a[2] = {300,300};
@@ -29,6 +30,8 @@ void draw() {
 	double gamma[2] = {0.0,1.0};
 	triRender(a,b,c,bg,tex,alpha,beta,gamma);
 }
+
+// This method handles pressing enter to change filtering method
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
 		int altOptionIsDown, int superCommandIsDown) {
 	printf("key up %d, shift %d, control %d, altOpt %d, supComm %d\n",
@@ -52,7 +55,7 @@ int main(void) {
 	if (pixInitialize(512, 512, "Pixel Graphics") != 0)
 		return 1;
 	else {
-		//Then paint the screen dark and draw triangles using triRender
+		//init KeyUphandler and texture and then draw
 		pixSetKeyUpHandler(handleKeyUp);
 		tex = &texture;
 		tex->filtering = texNEAREST;

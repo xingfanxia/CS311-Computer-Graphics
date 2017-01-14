@@ -1,4 +1,4 @@
-
+//Xingfan Xia, January 12th
 
 
 /*** Public: For header file ***/
@@ -194,6 +194,8 @@ void texSample(texTexture *tex, double s, double t) {
 		/* Replace this nearest-neighbor filtering with quadratic!! */
 		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
 	} else{
+		//Apply formula learnt in class to calculate tex->sample using
+		//tex->sample from 4 tex coords nearby
 		double uFrac = u - floor(u);
 		double vFrac = v - (int)floor(v);
 
