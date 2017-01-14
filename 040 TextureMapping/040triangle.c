@@ -2,7 +2,7 @@
 //me the classes I have missed for starting this class in the middle of second week
 
 
-//To Generate Color at vector x by applying formulae learnt in class
+//To Generate tex coord S and T at vector x by applying formulae learnt in class
 void getSTcoordinates(double x[2], double a[2], double b[2], double c[2], double rgb[3],
 		double alpha[2], double beta[2], double gamma[2], double coordinates[2]) {
 
