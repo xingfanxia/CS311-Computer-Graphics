@@ -18,7 +18,6 @@ void getSTcoordinates(double x[2], double a[2], double b[2], double c[2], double
 	double vec[2] = {x[0]-a[0], x[1]-a[1]};
 	double pq[2] = {0.0, 0.0};
 	mat221Multiply(Inv,vec,pq);
-	// vectorPp(pq);
 	if (det != 0) {
 		coordinates[0] = alpha[0] + pq[0]*(beta[0]-alpha[0])+pq[1]*(gamma[0]-alpha[0]);
 		coordinates[1] = alpha[1] + pq[0]*(beta[1]-alpha[1])+pq[1]*(gamma[1]-alpha[1]);
