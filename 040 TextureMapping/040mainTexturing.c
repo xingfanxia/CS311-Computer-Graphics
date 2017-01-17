@@ -6,6 +6,7 @@ Note:
 All vertices must be entered in a counter-clockwise order
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "000pixel.h"
 #include "030matrix.c"
@@ -58,10 +59,14 @@ int main(void) {
 		pixSetKeyUpHandler(handleKeyUp);
 		tex = &texture;
 		tex->filtering = texNEAREST;
-		texInitializeFile(tex, "avatar.jpg");
-		draw();
-		pixRun();
-		texDestroy(tex);
-		return 0;
+		if (texInitializeFile(tex, "avatar.jpg") != 0) {
+			return 1;
+		} else {
+			draw();
+			pixRun();
+			texDestroy(tex);
+			return 0;
+		}
+		
 	}	
 }

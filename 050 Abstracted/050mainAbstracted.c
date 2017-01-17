@@ -1,12 +1,18 @@
 //Xingfan Xia Jan 14th
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "000pixel.h"
 #include "030matrix.c"
 #include "030vector.c"
+#include "040texture.c"
 #include "050renderer.c"
 
+texTexture texture;
+texTexture *tex_0;
+renRenderer renderer;
+renRenderer *ren;
 #define renATTRDIMBOUND 16
 
 #define renATTRX 0
@@ -34,3 +40,38 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 }
 
 #include "050triangle.c"
+
+// void draw(renRenderer *ren, unif[], *tex[], a[], b[], c[]) {
+// 	pixClearRGB(0.0, 0.0, 0.0);
+// 	triRender(renRenderer *ren, unif[], *tex[], a[], b[], c[])；
+// }
+
+int main(void) {
+	if (pixInitialize(512, 512, "Pixel Graphics") != 0)
+		return 1;
+	else {
+		ren = &renderer;
+		ren->unifDim = 3;
+		ren->texNum = 2;
+		ren->attrDim = 4;
+
+		texTexture *tex[ren->texNum];
+		tex_0 = &texture;
+		tex_0->filtering = texQUADRATIC;
+		tex[0] = tex_0;
+
+		double a[renATTRDIMBOUND] = {300, 300, 0.0, 0.5};
+		double b[renATTRDIMBOUND] = {50, 300, 1.0, 1.0};
+		double c[renATTRDIMBOUND] = {200, 0, 0.0, 1.0};
+		double unif[3] = {1.0, 1.0, 1.0};
+		if (texInitializeFile(tex_0, "avatar.jpg") != 0) {
+			return 1;
+		} else {
+			pixClearRGB(0.0, 0.0, 0.0);
+			triRender(ren, unif, tex, a, b, c);
+			pixRun();
+			texDestroy(tex[0]);
+			return 0;
+		}
+	}	
+}

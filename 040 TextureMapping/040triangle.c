@@ -36,6 +36,12 @@ void triRenderALeft(double a[2], double b[2], double c[2], double rgb[3], texTex
 	double STvalue[2];
 	double *sampleRGB;
 	double x[2];
+
+	if (a[0] == b[0] == c[0]) {
+		printf("Three Vertices on the same axis! Can't draw! \n");
+		exit(0);
+	}
+
 	//c[0]<b[0], so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (c[0] <= b[0]){ 
 
@@ -181,8 +187,8 @@ void triRender(double a[2], double b[2], double c[2], double rgb[3], texTexture 
 	if (a[0] < b[0] && a[0] < c[0]) {
 		triRenderALeft(a, b, c, rgb, tex, alpha, beta, gamma);
 	} else if (b[0] < a[0] && b[0] < c[0]) {
-		triRenderALeft(b, c, a, rgb, tex, alpha, beta, gamma);
+		triRenderALeft(b, c, a, rgb, tex, beta, gamma, alpha);
 	} else if (c[0] < a[0] && c[0] < b[0]) {
-		triRenderALeft(c, a, b, rgb, tex, alpha, beta, gamma);
+		triRenderALeft(c, a, b, rgb, tex, gamma, alpha, beta);
 	}
 }
