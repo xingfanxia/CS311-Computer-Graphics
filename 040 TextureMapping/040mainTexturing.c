@@ -67,6 +67,5 @@ int main(void) {
 			texDestroy(tex);
 			return 0;
 		}
-		
 	}	
 }

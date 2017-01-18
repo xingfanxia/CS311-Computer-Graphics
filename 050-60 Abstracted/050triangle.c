@@ -19,14 +19,21 @@ void getSTcoordinates(renRenderer *ren, double unif[], double x[], double a[], d
 	double pq[2] = {0.0, 0.0};
 	mat221Multiply(Inv,vec,pq);
 	if (det != 0) {
-		for (int i = 0; i < 2; i++) {
-			attr[i] = a[i+2] + pq[i]*(b[i+2] - a[i+2]) + pq[i+1]*(c[i+2] - a[i+2]);
-		}
-		// attr[0] = a[2] + pq[0]*(b[2]-a[2])+pq[1]*(c[2]-a[2]);
-		// attr[1] = a[3] + pq[0]*(b[3]-a[3])+pq[1]*(c[3]-a[3]);
+		//a temp to hold intermediate results
+		double temp[ren->attrDim];
+		//change to vector
+		vecSubtract(ren->attrDim, b, a, temp);
+		vecScale(ren->attrDim, pq[0], temp, attr);
+		vecSubtract(ren->attrDim, c, a, temp);
+		vecScale(ren->attrDim, pq[1], temp, temp);
+		vecAdd(ren->attrDim, temp, attr, attr);
+		vecAdd(ren->attrDim, attr, a, attr);
+
+		
 	} else {
 		printf("The matrix doesn't have an Inverse, something is wrong here\n");
 	}
+
 }
 
 /* triRenderAleft rasterizes a triangle whose vertices are given in 
@@ -35,8 +42,8 @@ texture coord and unif background.*/
 void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[], 
 		double a[], double b[], double c[]) {
 	
-	double STvalue[2];
-	double *sampleRGB;
+	double STvalue[ren->attrDim];
+	double sampleRGB[3];
 	double x[2];
 
 	if (a[0] == b[0] == c[0]) {
@@ -64,8 +71,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
 					getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+					
 					//get RGB infos
 					colorPixel(ren, unif, tex, STvalue, sampleRGB);
+					
 					//Set color
 					pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 				}
@@ -87,8 +96,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
 					getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+					
 					//get RGB infos
 					colorPixel(ren, unif, tex, STvalue, sampleRGB);
+					
 					//Set color
 					pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 				}
@@ -111,8 +122,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
 					getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+					
 					//get RGB infos
 					colorPixel(ren, unif, tex, STvalue, sampleRGB);
+					
 					//Set color
 					pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 				}
@@ -126,8 +139,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){	
 					//get s and t
 					getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+					
 					//get RGB infos
 					colorPixel(ren, unif, tex, STvalue, sampleRGB);
+					
 					//Set color
 					pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 				}
@@ -144,8 +159,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 			for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 				//get s and t
 				getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+				
 				//get RGB infos
 				colorPixel(ren, unif, tex, STvalue, sampleRGB);
+				
 				//Set color
 				pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 			}
@@ -159,8 +176,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 			for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){	
 				//get s and t
 				getSTcoordinates(ren, unif, x, a, b, c, STvalue);
+				
 				//get RGB infos
 				colorPixel(ren, unif, tex, STvalue, sampleRGB);
+				
 				//Set color
 				pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 			}
