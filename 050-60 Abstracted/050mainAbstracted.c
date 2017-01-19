@@ -33,7 +33,7 @@ renRenderer *ren;
 interpolated attribute vector. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
         double attr[], double rgb[]) {
-    texSample(tex[0], attr[2], attr[3]);
+    texSample(tex[0], attr[renATTRS], attr[renATTRT]);
     rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
     rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
     rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];

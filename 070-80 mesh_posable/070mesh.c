@@ -1,6 +1,6 @@
 
-
-
+/*Array holding varyings*/
+// double varyings[renVARYDIMBOUND * renVERTNUMBOUND];
 /*** Creating and destroying ***/
 
 /* Feel free to read the struct's members, but don't write them, except through 
@@ -80,7 +80,17 @@ attrDim, then prints an error message and does not render anything. */
 void meshRender(meshMesh *mesh, renRenderer *ren, double unif[], 
 		texTexture *tex[]) {
 	/* Your job is to implement this function!! */
-	return;
+	if (mesh->attrDim != ren->attrDim) {
+		printf("Different attrDim of mesh and ren, abort and exit\n");
+	} else {
+		for (int i = 0; i< mesh->triNum; i++) {
+			int *triangle = meshGetTrianglePointer(mesh, i);
+			double *a = meshGetVertexPointer(mesh, triangle[0]);
+			double *b = meshGetVertexPointer(mesh, triangle[1]);
+			double *c = meshGetVertexPointer(mesh, triangle[2]);
+			triRender(ren, unif, tex, a, b, c);
+		}
+	}
 }
 
 

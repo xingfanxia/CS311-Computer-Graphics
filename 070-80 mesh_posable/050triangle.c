@@ -27,9 +27,7 @@ void getSTcoordinates(renRenderer *ren, double unif[], double x[], double a[], d
 		vecSubtract(ren->attrDim, c, a, temp);
 		vecScale(ren->attrDim, pq[1], temp, temp);
 		vecAdd(ren->attrDim, temp, attr, attr);
-		vecAdd(ren->attrDim, attr, a, attr);
-
-		
+		vecAdd(ren->attrDim, attr, a, attr);		
 	} else {
 		printf("The matrix doesn't have an Inverse, something is wrong here\n");
 	}
