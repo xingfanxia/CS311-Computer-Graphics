@@ -100,13 +100,13 @@ int main(void) {
 
 		// meshInitializeRectangle(mesh, 200, 300, 200, 300);
 		meshInitializeEllipse(mesh, 200, 200, 50, 100, 30);
-		double unif[3] = {1.0, 1.0, 1.0};
+		double unif[renVARYDIMBOUND] = {1.0, 1.0, 1.0};
 		tex_0 = &texture;
 		if (texInitializeFile(tex_0, "avatar.jpg") != 0) {
 			return 1;
 		} else {
 			pixClearRGB(0.0, 0.0, 0.0);
-			texTexture *tex[ren->texNum];
+			texTexture *tex[renVARYDIMBOUND];
 			tex_0->filtering = texQUADRATIC;
 			tex[0] = tex_0;
 			meshRender(mesh, ren, unif, tex);
