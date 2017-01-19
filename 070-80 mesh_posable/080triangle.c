@@ -27,7 +27,7 @@ void getChi(renRenderer *ren, double unif[], double x[], double a[], double b[],
 		vecSubtract(ren->varyDim, c, a, temp);
 		vecScale(ren->varyDim, pq[1], temp, temp);
 		vecAdd(ren->varyDim, temp, attr, attr);
-		vecAdd(ren->varyDim, attr, a, attr);
+		vecAdd(ren->varyDim, attr, a, attr);		
 	} else {
 		printf("The matrix doesn't have an Inverse, something is wrong here\n");
 	}
@@ -48,18 +48,19 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 	//c[0]<b[0], so it is an Acute Triangle/Right Triangle, Angle(abc)<=90
 	if (b[0] <= c[0]){ 
 
-		// all in same y -axis
+		// all in same y-axis
 		if (b[0] == c[0] && a[0] == c[0]) {
 			for (x[1] = ceil(fmin(fmin(a[1],b[1]),fmin(a[1],c[1]))); x[1] <= floor(fmax(fmax(a[1],b[1]),fmax(a[1],c[1]))); x[1] ++) {
                 /* just draw a vertical line*/
                 pixSetRGB(ceil(a[0]), x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
             }
+            //b and c on same y-axis
 		} else if (b[0] == c[0] && a[0] != c[0]) {
 			for (x[0]=(int)ceil(a[0]); x[0]<=(int)floor(b[0]); x[0]++){
 			
 				/*The lower bound is ac and the higher bound is bc*/
-				x1_low = a[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
-				x1_high = c[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
+				x1_low = a[1]+(b[1]-a[1])/(b[0]-a[0])*(x[0]-a[0]);
+				x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
 					getChi(ren, unif, x, a, b, c, STvalue);
@@ -72,10 +73,11 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				}
 			}
 		} else {
+			//other normal cases of Acute triangles
 			for (x[0]=(int)ceil(b[0]); x[0]<=(int)floor(c[0]); x[0]++){
 					//Left sub-Triangle of Triangle ABC
 				
-					x1_low = a[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
+					x1_low = c[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
 					x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 					for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 						//get s and t
@@ -92,7 +94,7 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				//Right sub-Triangle of Triangle ABC
 			
 				x1_low = a[1]+(b[1]-a[1])/(b[0]-a[0])*(x[0]-a[0]);
-				x1_high = c[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
+				x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){	
 					//get s and t
 					getChi(ren, unif, x, a, b, c, STvalue);
@@ -106,6 +108,7 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 			}
 		} 
 	} else {
+		//other normal cases of Obtuse triangles
 		//A and C on the same y-axis
 		if (a[0] == c[0]){ 
 			/* Some triangle
@@ -115,12 +118,10 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 			A            
 			*/
 			/* The left bound is (int)ceil(a[0]) and the right bound is (int)floor(b[0])*/
-			for (x[0]=(int)ceil(c[0]); x[0]<=(int)floor(b[0]); x[0]++){
-			
-				/*The lower bound is ac and the higher bound is bc*/
-				x1_low = a[1]+(b[1]-a[1])/(b[0]-a[0])*(x[0]-a[0]);
-				x1_high = c[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
-				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
+			for (x[0] = ceil(c[0]); x[0] <= floor(b[0]); x[0] ++) {
+                x1_low = a[1] + (b[1]-a[1])/(b[0]-a[0]) * (x[0] - a[0]);
+                x1_high = c[1] + (b[1]-c[1])/(b[0]-c[0]) * (x[0] - c[0]);
+                for (x[1] = ceil(x1_low); x[1] <= floor(x1_high); x[1] ++) {
 					//get s and t
 					getChi(ren, unif, x, a, b, c, STvalue);
 					
@@ -131,7 +132,6 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					pixSetRGB(x[0], x[1], sampleRGB[0], sampleRGB[1], sampleRGB[2]);
 				}
 			}
-		/*case2: B and C on the same y-axis*/
 		} else {
 			/* Some triangle
 				  C
@@ -187,5 +187,18 @@ void triRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
 		triRenderALeft(ren, unif, tex, b, c, a);
 	} else if (c[0] < a[0] && c[0] < b[0]) {
 		triRenderALeft(ren, unif, tex, c, a, b);
+	} else if (a[0] == c[0] && b[0] != c[0]) {
+		triRenderALeft(ren, unif, tex, a, b, c);
+	} else if (a[0] == b[0] && a[0] != c[0]) {
+		triRenderALeft(ren, unif, tex, b, c, a);
+	} else if (b[0] == c[0] && a[0] != b[0]) {
+		triRenderALeft(ren, unif, tex, c, a, b);
+	} else {
+		triRenderALeft(ren, unif, tex, a, b, c);
 	}
 }
+
+
+
+
+
