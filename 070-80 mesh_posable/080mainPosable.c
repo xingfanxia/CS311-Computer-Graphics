@@ -6,14 +6,11 @@
 #include <stdarg.h>
 #include "000pixel.h"
 #include "030matrix.c"
-#include "030vector.c"
+#include "070vector.c"
 #include "040texture.c"
 #include "080renderer.c"
 
-texTexture texture;
-texTexture *tex_0;
-renRenderer renderer;
-renRenderer *ren;
+
 #define renVARYDIMBOUND 16
 #define renVERTNUMBOUND 16
 #define renATTRX 0
@@ -47,39 +44,59 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
 }
 
+void rotateMatrix(double angle, double matrix[2][2]) {
+	double rad = M_PI/180.0 * angle;
+	matrix[0][0] = cos(rad);
+	matrix[0][1] = -sin(rad);
+	matrix[1][0] = sin(rad);
+	matrix[1][1] = cos(rad);
+}
+
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
     /* For now, just copy attr to varying. Baby steps. */
+    double angle = 10.0;
+    double rotationMat[2][2];
+    double original[2];
+    original[0] = attr[renATTRX];
+    original[1] = attr[renATTRY];
+    rotateMatrix(angle, rotationMat);
+
     vary[renVARYX] = attr[renATTRX];
     vary[renVARYY] = attr[renATTRY];
+    mat221Multiply(rotationMat, original, vary);
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
+
 
 #include "080triangle.c"
 #include "080mesh.c"
 texTexture texture;
 texTexture *tex_0;
-renRenderer renderer;
-renRenderer *ren;
-meshMesh mesh_mesh;
-meshMesh *mesh;
+
 
 
 int main(void) {
 	if (pixInitialize(512, 512, "Pixel Graphics") != 0)
 		return 1;
 	else {
-		ren = &renderer;
-		ren->unifDim = 3;
-		ren->texNum = 2;
-		ren->varyDim = 4;
+		renRenderer renderer = {
+			.unifDim = 3,
+			.texNum = 2,
+			.varyDim = 4 
+		};
 
-		mesh = &mesh_mesh;
-		mesh->triNum = 2;
-		mesh->vertNum = 4;
-		mesh->attrDim = 4;
+		renRenderer *ren = &renderer;
+
+		meshMesh mesh_1 = {
+			.triNum = 2,
+			.vertNum = 4,
+			.attrDim = 4
+		};
+		meshMesh *mesh = &mesh_1;
+
 
 		// meshInitializeRectangle(mesh, 200, 300, 200, 300);
 		meshInitializeEllipse(mesh, 200, 200, 50, 100, 30);

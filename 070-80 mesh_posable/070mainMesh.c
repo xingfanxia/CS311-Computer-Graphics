@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include "000pixel.h"
 #include "030matrix.c"
-#include "030vector.c"
+#include "070vector.c"
 #include "040texture.c"
 #include "080renderer.c"
 
