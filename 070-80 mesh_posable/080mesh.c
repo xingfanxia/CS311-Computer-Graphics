@@ -84,7 +84,7 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 		printf("Different attrDim of mesh and ren, abort and exit\n");
 	} else {
 		for (int i = 0; i < mesh->vertNum; i++) {
-			transformVertex(ren, unif, meshGetVertexPointer(mesh, i), varyings[i*ren->varyDim]);
+			transformVertex(ren, unif, meshGetVertexPointer(mesh, i), &varyings[i*ren->varyDim]);
 		}
 		for (int i = 0; i< mesh->triNum; i++) {
 			int *triangle = meshGetTrianglePointer(mesh, i);

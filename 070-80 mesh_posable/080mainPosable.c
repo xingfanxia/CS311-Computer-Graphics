@@ -57,7 +57,7 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     vary[renVARYT] = attr[renATTRT];
 }
 
-#include "080triangle.c"
+#include "090triangle.c"
 #include "070mesh.c"
 texTexture texture;
 texTexture *tex_0;
