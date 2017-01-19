@@ -58,7 +58,7 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 }
 
 #include "080triangle.c"
-#include "070mesh.c"
+#include "080mesh.c"
 texTexture texture;
 texTexture *tex_0;
 renRenderer renderer;
@@ -74,15 +74,15 @@ int main(void) {
 		ren = &renderer;
 		ren->unifDim = 3;
 		ren->texNum = 2;
-		ren->attrDim = 4;
+		ren->varyDim = 4;
 
 		mesh = &mesh_mesh;
 		mesh->triNum = 2;
 		mesh->vertNum = 4;
 		mesh->attrDim = 4;
 
-		meshInitializeRectangle(mesh, 200, 300, 200, 300);
-		// meshInitializeEllipse(mesh, 200, 200, 50, 100, 300);
+		// meshInitializeRectangle(mesh, 200, 300, 200, 300);
+		meshInitializeEllipse(mesh, 200, 200, 50, 100, 30);
 		double unif[3] = {1.0, 1.0, 1.0};
 		tex_0 = &texture;
 		if (texInitializeFile(tex_0, "avatar.jpg") != 0) {

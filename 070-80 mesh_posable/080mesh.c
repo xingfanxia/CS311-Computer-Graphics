@@ -80,7 +80,7 @@ attrDim, then prints an error message and does not render anything. */
 void meshRender(meshMesh *mesh, renRenderer *ren, double unif[], 
 		texTexture *tex[]) {
 	/* Your job is to implement this function!! */
-	if (mesh->attrDim != ren->attrDim) {
+	if (mesh->attrDim != ren->varyDim) {
 		printf("Different attrDim of mesh and ren, abort and exit\n");
 	} else {
 		for (int i = 0; i < mesh->vertNum; i++) {
