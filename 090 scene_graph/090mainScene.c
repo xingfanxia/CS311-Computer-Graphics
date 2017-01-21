@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include "000pixel.h"
-#include "030matrix.c"
+#include "090matrix.c"
 #include "070vector.c"
 #include "040texture.c"
 #include "090renderer.c"
@@ -75,31 +75,22 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 #include "090mesh.c"
 texTexture texture;
 texTexture *tex_0;
-
-
+meshMesh mesh_1;
+meshMesh *mesh;
+renRenderer renderer = {
+	.unifDim = 3,
+	.texNum = 2,
+	.varyDim = 4,
+	.transformVertex = transformVertex,
+	.colorPixel = colorPixel 
+};
 
 int main(void) {
 	if (pixInitialize(512, 512, "Pixel Graphics") != 0)
 		return 1;
 	else {
-		renRenderer renderer = {
-			.unifDim = 3,
-			.texNum = 2,
-			.varyDim = 4,
-			.transformVertex = transformVertex,
-			.colorPixel = colorPixel 
-		};
-
 		renRenderer *ren = &renderer;
-
-		meshMesh mesh_1 = {
-			.triNum = 2,
-			.vertNum = 4,
-			.attrDim = 4
-		};
-		meshMesh *mesh = &mesh_1;
-
-
+		mesh = &mesh_1;
 		// meshInitializeRectangle(mesh, 200, 300, 200, 300);
 		meshInitializeEllipse(mesh, 300, 300, 100, 100, 30);
 		double unif[renVARYDIMBOUND] = {1.0, 1.0, 1.0};

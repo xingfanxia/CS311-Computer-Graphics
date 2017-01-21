@@ -53,10 +53,48 @@ void mat333Multiply(double m[3][3], double n[3][3], double mTimesN[3][3]) {
 }
 
 /* Multiplies the 3x3 matrix m by the 3x1 matrix v. */
-void mat331Multiply(double m[3][3], double v[3], double mTimesV[3])
+void mat331Multiply(double m[3][3], double v[3], double mTimesV[3]) {
+    for (i = 0; i < 3; i++) {
+        sum = 0
+        for （j = 0; j < 3; j++) {
+            sum += m[i][j]*v[j];
+        }
+        mTimesV[i] = sum;
+    }
+}
 
 /* Builds a 3x3 matrix representing 2D rotation and translation in homogeneous 
 coordinates. More precisely, the transformation first rotates through the angle 
 theta (in radians, counterclockwise), and then translates by the vector (x, y). 
 */
-void mat33Isometry(double theta, double x, double y, double isom[3][3])
+void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
+    double rad = M_PI/180.0 * angle;
+    // rotMat[3][3];
+    // rotMat[0][0] = cos(rad);
+    // rotMat[0][1] = -sin(rad);
+    // rotMat[0][2] = 0;
+    // rotMat[1][0] = sin(rad);
+    // rotMat[1][1] = cos(rad);
+    // rotMat[1][2] = 0;
+    // rotMat[2][0] = 0;
+    // rotMat[2][1] = 0;
+    // rotMat[2][2] = 1;
+    double rotMat[3][3] = {
+        cos(rad), -sin(rad), 0,
+        sin(rad), cos(rad), 0,
+        0, 0, 1,
+    };
+
+    double transMat[3][3] = {
+        1, 0, x,
+        0, 1, y,
+        0, 0, 1,
+    }
+    mat331Multiply(transMat, rotMat, isom);
+}
+
+
+
+
+
+
