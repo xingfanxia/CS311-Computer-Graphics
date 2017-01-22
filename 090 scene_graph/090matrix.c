@@ -1,13 +1,19 @@
 //Xingfan Xia, January 13th
 #include <stdio.h>
-
+#include <math.h>
 /*** 2 x 2 Matrices ***/
 
 /* Pretty-prints the given matrix, with one line of text per row of matrix. */
 void mat22Print(double m[2][2]) {
     for (int i = 0; i <2; i++){
         printf("%f  %f\n",m[i][0],m[i][1]);
-        } 	
+    } 	
+}
+
+void mat33Print(double m[3][3]) {
+    for (int i = 0; i < 3; i++) {
+        printf("%f %f %f\n", m[i][0], m[i][1], m[i][2]);
+    }
 }
 
 /* Returns the determinant of the matrix m. If the determinant is 0.0, then the 
@@ -39,73 +45,71 @@ void mat22Columns(double col0[2], double col1[2], double m[2][2]) {
     m[1][1]	= col1[1];
 }
 
-// /* Multiplies the 3x3 matrix m by the 3x3 matrix n. */
-// void mat333Multiply(double m[3][3], double n[3][3], double mTimesN[3][3]) {
-//     // for (int i = 0; i < 3; i++) {
-//     //     for（int j = 0; j < 3; j++){
-//     //         double sum = 0;
-//     //         for (int k = 0; k <3; k++) {
-//     //             sum = sum + m[i][k] * n[k][j];
-//     //         }
-//     //         mTimesN[i][j] = sum;
-//     //     }
-//     // }
+/* Multiplies the 3x3 matrix m by the 3x3 matrix n. */
+void mat333Multiply(double m[3][3], double n[3][3], double mTimesN[3][3]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            double sum = 0;
+            for (int k = 0; k < 3; k++) {
+                sum += m[i][k] * n[k][j];
+            }
+            mTimesN[i][j] = sum;
+        }
+    }
+}
 
-//     for (int i = 0; i < 3; i++) {
-//         for (int j = 0; j < 3; j++) {
-//             double sum = 0;
-//             for (int k = 0; k < 3; k++) {
-//                 sum += m[j][k] * n[k][j];
-//             }
-//             mTimesN[i][j] = sum;
-//         }
-//     }
-// }
+void mat331Multiply(double m[3][3], double v[3], double mTimesV[3]) {
+    for (int i = 0; i < 3; i++) {
+        double sum = 0;
+        for (int j = 0; j < 3; j++) {
+            sum += m[i][j]*v[j];
+        }
+        mTimesV[i] = sum;
+    }
+}
+/* Builds a 3x3 matrix representing 2D rotation and translation in homogeneous 
+coordinates. More precisely, the transformation first rotates through the angle 
+theta (in radians, counterclockwise), and then translates by the vector (x, y). 
+*/
+void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
+    double rad = M_PI/180.0 * theta;
+    double rotMat[3][3] = {
+        cos(rad), -sin(rad), 0,
+        sin(rad), cos(rad), 0,
+        0, 0, 1,
+    };
 
+    double transMat[3][3] = {
+        1, 0, x,
+        0, 1, y,
+        0, 0, 1,
+    };
+    mat333Multiply(transMat, rotMat, isom);
+}
 
-// /* Multiplies the 3x3 matrix m by the 3x1 matrix v. */
-// void mat331Multiply(double m[3][3], double v[3], double mTimesV[3]) {
-//     for (int i = 0; i < 3; i++) {
-//         double sum = 0;
-//         for （int j = 0; j < 3; j++) {
-//             sum += m[i][j]*v[j];
-//         }
-//         mTimesV[i] = sum;
-//     }
-// }
-
-// /* Builds a 3x3 matrix representing 2D rotation and translation in homogeneous 
-// coordinates. More precisely, the transformation first rotates through the angle 
-// theta (in radians, counterclockwise), and then translates by the vector (x, y). 
-// */
-// void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
-//     double rad = M_PI/180.0 * theta;
-//     // rotMat[3][3];
-//     // rotMat[0][0] = cos(rad);
-//     // rotMat[0][1] = -sin(rad);
-//     // rotMat[0][2] = 0;
-//     // rotMat[1][0] = sin(rad);
-//     // rotMat[1][1] = cos(rad);
-//     // rotMat[1][2] = 0;
-//     // rotMat[2][0] = 0;
-//     // rotMat[2][1] = 0;
-//     // rotMat[2][2] = 1;
-//     double rotMat[3][3] = {
-//         cos(rad), -sin(rad), 0,
-//         sin(rad), cos(rad), 0,
-//         0, 0, 1,
+// int main(void) {
+//     double m33[3][3]= {
+//         3, 2, 3,
+//         3, 1, 5,
+//         5, 1, 2,
 //     };
 
-//     double transMat[3][3] = {
-//         1, 0, x,
-//         0, 1, y,
-//         0, 0, 1,
+//     double n33[3][3] = {
+//         1, 5, 7,
+//         7, 2, 4,
+//         8, 6, 3,
 //     };
-//     mat331Multiply(transMat, rotMat, isom);
+
+//     double n31[3] = {2, 3, 9};
+
+//     double result333[3][3];
+//     double result331[3];
+//     mat333Multiply(m33, n33, result333);
+//     mat331Multiply(m33, n31, result331);
+
+//     mat33Print(result333);
+//     printf("%f %f %f\n", result331[0], result331[1], result331[2]);  
+
 // }
-
-
-
-
 
 
