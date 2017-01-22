@@ -71,8 +71,9 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
  //   	double isom[3][3];
 	// mat33Isometry(a, x, y, isom);
-	mat33Isometry(unif[renUNIFTHETA], unif[renUNIFTRANSX], 
-		unif[renUNIFTRANSY], (double(*)[3])(&unif[renUNIFISOMETRY]));
+	// mat33Isometry(unif[renUNIFTHETA], unif[renUNIFTRANSX], 
+	// 	unif[renUNIFTRANSY], (double(*)[3])(&unif[renUNIFISOMETRY]));
+	
 	double original[3] = {attr[renATTRX], attr[renATTRY], 1};
 
     mat331Multiply((double(*)[3])(&unif[renUNIFISOMETRY]), original, vary);
@@ -102,44 +103,97 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     }
 }
 
+
+
 #include "090triangle.c"
 #include "090mesh.c"
+#include "090scene.c"
 texTexture texture;
 texTexture *tex_0;
-meshMesh mesh_1;
-meshMesh *mesh;
+meshMesh mesher_1;
+meshMesh mesher_2;
+meshMesh mesher_3;
+meshMesh mesher_4;
+
+sceneNode nodeA;
+sceneNode nodeB;
+sceneNode nodeC;
+sceneNode nodeD;
 renRenderer renderer = {
-	.unifDim = 3,
+	.unifDim = 16,
 	.texNum = 2,
 	.varyDim = 4,
 	.transformVertex = transformVertex,
-	.colorPixel = colorPixel 
+	.colorPixel = colorPixel,
+	.updateUniform = updateUniform
 };
 
 
+/*set one uniform in the unif*/
+void sceneSetOneUniform(sceneNode *node, int i, double unif){
+        node -> unif[i] = unif;
+}
+
+void draw(void){
+    pixClearRGB(0.0, 0.0, 0.0);
+    sceneRender(&nodeA, &renderer, NULL);
+}
+
+void handleTimeStep(double oldTime, double newTime) {
+    if (floor(newTime) - floor(oldTime) >= 1.0)
+        printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
+        sceneSetOneUniform(&nodeA, renUNIFTHETA, newTime*100);
+        draw();
+}
 
 int main(void) {
-	if (pixInitialize(512, 512, "Pixel Graphics") != 0)
+	renRenderer *ren = &renderer;
+	meshMesh *mesh1 = &mesher_1;
+	meshMesh *mesh2 = &mesher_2;
+	meshMesh *mesh3 = &mesher_3;
+	meshMesh *mesh4 = &mesher_4;
+	texTexture *tex[renVARYDIMBOUND];
+	tex[0] = &texture;
+	tex[0]->filtering = texQUADRATIC;
+
+	double unifA[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifB[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.9, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifC[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.2, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifD[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.8, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+	if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
 		return 1;
-	else {
-		renRenderer *ren = &renderer;
-		mesh = &mesh_1;
-		// meshInitializeRectangle(mesh, 200, 300, 200, 300);
-		meshInitializeEllipse(mesh, 300, 300, 100, 100, 30);
-		
-		tex_0 = &texture;
-		if (texInitializeFile(tex_0, "avatar.jpg") != 0) {
-			return 1;
-		} else {
-			pixClearRGB(0.0, 0.0, 0.0);
-			texTexture *tex[renVARYDIMBOUND];
-			tex_0->filtering = texQUADRATIC;
-			tex[0] = tex_0;
-			meshRender(mesh, ren, unif, tex);
-			pixRun();
-			texDestroy(tex[0]);
-			meshDestroy(mesh);
-			return 0;
-		}
+	} else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
+        return 2;
+    } else if (meshInitializeEllipse(mesh2, 250.0, 200.0, 50.0, 50.0, 50.0) != 0){
+        return 3;
+    } else if (meshInitializeEllipse(mesh3, 150.0, 150.0, 60.0, 60.0, 50.0) != 0){
+        return 4;
+    } else if (meshInitializeEllipse(mesh4, 350.0, 350.0, 70.0, 70.0, 50.0) != 0){
+        return 5;
+    } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
+    	return 6;
+    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
+        return 7;
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
+        return 8;
+    } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, &nodeD) != 0){
+        return 9;
+    } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){
+        return 10;
+	}else {
+
+		draw();
+        pixSetTimeStepHandler(handleTimeStep);
+		pixRun();
+		texDestroy(tex[0]);
+		meshDestroy(mesh1);
+		meshDestroy(mesh2);
+		meshDestroy(mesh3);
+		meshDestroy(mesh4);
+		sceneDestroy(&nodeA);
+        sceneDestroy(&nodeB);
+        sceneDestroy(&nodeC);
+        sceneDestroy(&nodeD);
+		return 0;
 	}	
 }

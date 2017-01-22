@@ -12,5 +12,5 @@ struct renRenderer{
 	void (*transformVertex)(renRenderer*, double[], double[], 
         double[]);
 	//function pointers to translationVertex and transform vertexs
-	
+	void (*updateUniform)(renRenderer*, double[], double[]);
 };

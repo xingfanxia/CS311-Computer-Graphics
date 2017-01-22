@@ -70,8 +70,15 @@ void sceneSetTexture(sceneNode *node, renRenderer *ren, int i, texTexture *tex)
 has no parent, then unifParent is NULL. Otherwise, unifParent is the parent 
 node's uniform vector. */
 void sceneRender(sceneNode *node, renRenderer *ren, double *unifParent) {
-	/* Your job is to implement this function!! */
-	return;
+	ren->updateUniform(ren, node->unif,unifParent);
+	meshRender(node->mesh, ren, node->unif,node->tex);
+	/*recursive call*/
+	if (node->firstChild != NULL ){
+		sceneRender(node->firstChild, ren, node->unif);
+	} 
+	if (node->nextSibling != NULL){
+		sceneRender(node->nextSibling, ren, unifParent);
+	}
 }
 
 /* Deallocates the resources backing this scene node. Does not destroy the 
