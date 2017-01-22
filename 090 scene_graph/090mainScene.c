@@ -54,31 +54,11 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
 }
 
-// void rotateMatrix(double angle, double matrix[2][2]) {
-// 	double rad = M_PI/180.0 * angle;
-// 	matrix[0][0] = cos(rad);
-// 	matrix[0][1] = -sin(rad);
-// 	matrix[1][0] = sin(rad);
-// 	matrix[1][1] = cos(rad);
-// }
-
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
-    /* For now, just copy attr to varying. Baby steps. */
- //    double angle = 45.0;
- //    double x, y  = 10.0, 10.0;
-
- //   	double isom[3][3];
-	// mat33Isometry(a, x, y, isom);
-	// mat33Isometry(unif[renUNIFTHETA], unif[renUNIFTRANSX], 
-	// 	unif[renUNIFTRANSY], (double(*)[3])(&unif[renUNIFISOMETRY]));
-	
 	double original[3] = {attr[renATTRX], attr[renATTRY], 1};
-
     mat331Multiply((double(*)[3])(&unif[renUNIFISOMETRY]), original, vary);
-    // vary[renVARYX] = attr[renATTRX];
-    // vary[renVARYY] = attr[renATTRY];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
@@ -134,6 +114,7 @@ void sceneSetOneUniform(sceneNode *node, int i, double unif){
 }
 
 void draw(void){
+    //draw scene from node A
     pixClearRGB(0.0, 0.0, 0.0);
     sceneRender(&nodeA, &renderer, NULL);
 }
