@@ -1,4 +1,4 @@
-
+//Xingfan Xia, January 20th
 
 
 /* Feel free to read from this struct's members, but don't write to them except 
@@ -70,9 +70,13 @@ void sceneSetTexture(sceneNode *node, renRenderer *ren, int i, texTexture *tex)
 has no parent, then unifParent is NULL. Otherwise, unifParent is the parent 
 node's uniform vector. */
 void sceneRender(sceneNode *node, renRenderer *ren, double *unifParent) {
+	//update unif
 	ren->updateUniform(ren, node->unif,unifParent);
+	//render this node's mesh
 	meshRender(node->mesh, ren, node->unif,node->tex);
 	/*recursive call*/
+
+	//render child/sib if possible
 	if (node->firstChild != NULL ){
 		sceneRender(node->firstChild, ren, node->unif);
 	} 

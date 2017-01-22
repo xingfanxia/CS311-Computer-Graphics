@@ -1,6 +1,4 @@
-//Xingfan Xia, January 13th
-#include <stdio.h>
-#include <math.h>
+//Xingfan Xia, January 20th
 /*** 2 x 2 Matrices ***/
 
 /* Pretty-prints the given matrix, with one line of text per row of matrix. */
@@ -72,10 +70,10 @@ coordinates. More precisely, the transformation first rotates through the angle
 theta (in radians, counterclockwise), and then translates by the vector (x, y). 
 */
 void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
-    double rad = M_PI/180.0 * theta;
+    // double rad = M_PI/180.0 * theta;
     double rotMat[3][3] = {
-        cos(rad), -sin(rad), 0,
-        sin(rad), cos(rad), 0,
+        cos(theta), -sin(theta), 0,
+        sin(theta), cos(theta), 0,
         0, 0, 1,
     };
 

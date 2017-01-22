@@ -1,5 +1,4 @@
-//Xingfan Xia, January 12th
-//me the classes I have missed for starting this class in the middle of second week
+//Xingfan Xia, January 20th
 
 
 //To Generate tex coord S and T at vector x by applying formulae learnt in class

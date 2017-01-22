@@ -1,4 +1,4 @@
-//Xingfan Xia Jan 14th
+//Xingfan Xia Jan 20th
 //clang 090mainScene.c 000pixel.o -lglfw -framework OpenGL; ./a.out
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,7 +109,6 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 #include "090mesh.c"
 #include "090scene.c"
 texTexture texture;
-texTexture *tex_0;
 meshMesh mesher_1;
 meshMesh mesher_2;
 meshMesh mesher_3;
@@ -140,9 +139,10 @@ void draw(void){
 }
 
 void handleTimeStep(double oldTime, double newTime) {
+    //redraw the scene by a new unifAnge theta as time changes
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
-        sceneSetOneUniform(&nodeA, renUNIFTHETA, newTime*100);
+        sceneSetOneUniform(&nodeA, renUNIFTHETA, newTime*1);
         draw();
 }
 
@@ -156,11 +156,14 @@ int main(void) {
 	tex[0] = &texture;
 	tex[0]->filtering = texQUADRATIC;
 
+    //init unif for each node
 	double unifA[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifB[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.9, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifC[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.2, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifD[3+1+2+9+1] = {1.0, 1.0, 1.0, 0.8, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-	if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
+	
+    //init mesh, tex and scene nodes
+    if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
 		return 1;
 	} else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
         return 2;
@@ -181,10 +184,12 @@ int main(void) {
     } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){
         return 10;
 	}else {
-
+        //draw the scene
 		draw();
         pixSetTimeStepHandler(handleTimeStep);
 		pixRun();
+
+        //destroy
 		texDestroy(tex[0]);
 		meshDestroy(mesh1);
 		meshDestroy(mesh2);

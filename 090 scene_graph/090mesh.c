@@ -1,4 +1,4 @@
-
+//Xingfan Xia, January 20th
 /*Array holding varyings*/
 double varyings[renVARYDIMBOUND * renVERTNUMBOUND];
 /*** Creating and destroying ***/

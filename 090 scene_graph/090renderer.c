@@ -1,3 +1,4 @@
+//Xingfan Xia, January 20th
 #include <stdio.h>
 
 typedef struct renRenderer renRenderer;
@@ -11,6 +12,5 @@ struct renRenderer{
         double[], double[]);
 	void (*transformVertex)(renRenderer*, double[], double[], 
         double[]);
-	//function pointers to translationVertex and transform vertexs
 	void (*updateUniform)(renRenderer*, double[], double[]);
 };
