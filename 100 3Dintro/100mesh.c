@@ -4,6 +4,8 @@
 /* Feel free to read the struct's members, but don't write them, except through 
 the accessors below such as meshSetTriangle, meshSetVertex. */
 typedef struct meshMesh meshMesh;
+/*Array holding varyings*/
+double varyings[renVARYDIMBOUND * renVERTNUMBOUND];
 struct meshMesh {
 	int triNum, vertNum, attrDim;
 	int *tri;						/* triNum * 3 ints */
@@ -88,38 +90,38 @@ double *meshGetTransformedVertexPointer(meshMesh *mesh, renRenderer *ren,
 attrDim, then prints an error message and does not render anything. */
 void meshRender(meshMesh *mesh, renRenderer *ren, double unif[], 
 		texTexture *tex[]) {
-	if (mesh->attrDim != ren->attrDim) {
-		fprintf(stderr, "error: meshRender: ");
-		fprintf(stderr, "mesh attrDim = %d but renderer attrDim = %d.\n", 
-			mesh->attrDim, ren->attrDim);
-	} else {
-		int i, *tri;
-		for (i = 0; i < mesh->vertNum; i += 1)
-			ren->transformVertex(ren, unif, meshGetVertexPointer(mesh, i), 
-				meshGetTransformedVertexPointer(mesh, ren, i));
-		for (i = 0; i < mesh->triNum; i += 1) {
-			tri = meshGetTrianglePointer(mesh, i);
-			triRender(ren, unif, tex, 
-				meshGetTransformedVertexPointer(mesh, ren, tri[0]),
-				meshGetTransformedVertexPointer(mesh, ren, tri[1]), 
-				meshGetTransformedVertexPointer(mesh, ren, tri[2]));
-		}
-	}
-
-	// if (mesh->attrDim != ren->varyDim) {
-	// 	printf("Different attrDim of mesh and ren, abort and exit\n");
+	// if (mesh->attrDim != ren->attrDim) {
+	// 	fprintf(stderr, "error: meshRender: ");
+	// 	fprintf(stderr, "mesh attrDim = %d but renderer attrDim = %d.\n", 
+	// 		mesh->attrDim, ren->attrDim);
 	// } else {
-	// 	for (int i = 0; i < mesh->vertNum; i++) {
-	// 		ren->transformVertex(ren, unif, meshGetVertexPointer(mesh, i), &varyings[i*ren->varyDim]);
+	// 	int i, *tri;
+	// 	for (i = 0; i < mesh->vertNum; i += 1)
+	// 		ren->transformVertex(ren, unif, meshGetVertexPointer(mesh, i), 
+	// 			meshGetTransformedVertexPointer(mesh, ren, i));
+	// 	for (i = 0; i < mesh->triNum; i += 1) {
+	// 		tri = meshGetTrianglePointer(mesh, i);
+	// 		triRender(ren, unif, tex, 
+	// 			meshGetTransformedVertexPointer(mesh, ren, tri[0]),
+	// 			meshGetTransformedVertexPointer(mesh, ren, tri[1]), 
+	// 			meshGetTransformedVertexPointer(mesh, ren, tri[2]));
 	// 	}
-	// 	for (int i = 0; i< mesh->triNum; i++) {
-	// 		int *triangle = meshGetTrianglePointer(mesh, i);
-	// 		double *a = &(varyings[triangle[0]*ren->varyDim]);
-	// 		double *b = &(varyings[triangle[1]*ren->varyDim]);
-	// 		double *c = &(varyings[triangle[2]*ren->varyDim]);
-	// 		triRender(ren, unif, tex, a, b, c);
-	// 	}
-	// }	
+	// }
+
+	if (mesh->attrDim != ren->varyDim) {
+		printf("Different attrDim of mesh and ren, abort and exit\n");
+	} else {
+		for (int i = 0; i < mesh->vertNum; i++) {
+			ren->transformVertex(ren, unif, meshGetVertexPointer(mesh, i), &varyings[i*ren->varyDim]);
+		}
+		for (int i = 0; i< mesh->triNum; i++) {
+			int *triangle = meshGetTrianglePointer(mesh, i);
+			double *a = &(varyings[triangle[0]*ren->varyDim]);
+			double *b = &(varyings[triangle[1]*ren->varyDim]);
+			double *c = &(varyings[triangle[2]*ren->varyDim]);
+			triRender(ren, unif, tex, a, b, c);
+		}
+	}	
 }
 
 
