@@ -38,6 +38,20 @@ a counter-clockwise order and with each pixel's rgb interpolated by
 texture coord and unif background.*/
 void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[], 
 		double a[], double b[], double c[]) {
+
+	double m[2][2] = {
+		{b[0]-a[0], c[0]-a[0]},
+		{b[1]-a[1], c[1]-a[1]}
+	};
+	double Inv[2][2] = {
+		{0.0,0.0},
+		{0.0,0.0}
+	};	
+	//apply interpolation formula learnt in class
+	double det = mat22Invert(m,Inv);	
+	if (det <= 0) {
+		return;
+	}
 	
 	double STvalue[ren->varyDim];
 	double sampleRGB[3];

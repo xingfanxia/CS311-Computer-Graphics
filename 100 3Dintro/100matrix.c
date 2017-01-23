@@ -1,4 +1,4 @@
-//Xingfan Xia, January 20th
+//Xingfan Xia, January 21th
 /*** 2 x 2 Matrices ***/
 
 /* Pretty-prints the given matrix, with one line of text per row of matrix. */
@@ -85,7 +85,7 @@ void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
     mat333Multiply(transMat, rotMat, isom);
 }
 
-void mat33Add(double m[3][3], double v[3], double mAddV[3]){
+void mat33Add(double m[3][3], double v[3][3], double mAddV[3][3]){
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			mAddV[i][j] = m[i][j] + v[i][j];
@@ -93,7 +93,7 @@ void mat33Add(double m[3][3], double v[3], double mAddV[3]){
 	}
 }
 
-void matMultScalar(double m[3][3], double k, double mMultK[3][3]) {
+void matMultScalar(double k, double m[3][3], double mMultK[3][3]) {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			mMultK[i][j] = m[i][j]*k;
@@ -102,16 +102,16 @@ void matMultScalar(double m[3][3], double k, double mMultK[3][3]) {
 }
 
 void mat33Transpose(double m[3][3], double mTrans[3][3]) {
-	for (i = 0; i < 3; i++) {
-		for (j = 0; j < 3; j++) {
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
 			mTrans[j][i] = m[i][j];
 		}
 	}
 }
 
-void mat44Transpose(double m[3][3], double mTrans[3][3]) {
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 4; j++) {
+void mat44Transpose(double m[4][4], double mTrans[4][4]) {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
 			mTrans[j][i] = m[i][j];
 		}
 	}
@@ -120,14 +120,23 @@ void mat44Transpose(double m[3][3], double mTrans[3][3]) {
 rotation matrix for the rotation about that axis through that angle. Based on 
 Rodrigues' rotation formula R = I + (sin theta) U + (1 - cos theta) U^2. */
 void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3]) {
-	double axisSquare;
+	double axis33[3][3] = {
+		0, -axis[2], axis[1],
+		axis[2], 0, -axis[0],
+		-axis[1], axis[0], 0,
+	};
+	double axis33Square[3][3];
 	double identity[3][3] = {
 	  1,0,0,
 	  0,1,0,
 	  1,0,1,
 	};
-	mat333Multiply(axis, axis, axisSquare);
-	mat33Add(matMultScalar(sin(theta), axis), matMultScalar(1-cos(theta), axisSquare), rot));
+	double rAddPart1[3][3];
+	double rAddPart2[3][3];
+	mat333Multiply(axis33, axis33, axis33Square);
+	matMultScalar(sin(theta), axis33, rAddPart1);
+	matMultScalar(1-cos(theta), axis33Square, rAddPart2);
+	mat33Add(rAddPart1, rAddPart2, rot);
 	mat33Add(rot, identity, rot);
 }
 
@@ -151,8 +160,9 @@ void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3],
 		a[1], b[1], ab[1],
 		a[2], b[2], ab[2],
 	};
-
-	mat333Multiply(S, mat33Transpose(R), rot);
+	double Rtrans[3][3];
+	mat33Transpose(R, Rtrans);
+	mat333Multiply(S, Rtrans, rot);
 }
 
 /* Multiplies m by n, placing the answer in mTimesN. */

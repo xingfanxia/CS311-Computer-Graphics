@@ -105,6 +105,21 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 				meshGetTransformedVertexPointer(mesh, ren, tri[2]));
 		}
 	}
+
+	// if (mesh->attrDim != ren->varyDim) {
+	// 	printf("Different attrDim of mesh and ren, abort and exit\n");
+	// } else {
+	// 	for (int i = 0; i < mesh->vertNum; i++) {
+	// 		ren->transformVertex(ren, unif, meshGetVertexPointer(mesh, i), &varyings[i*ren->varyDim]);
+	// 	}
+	// 	for (int i = 0; i< mesh->triNum; i++) {
+	// 		int *triangle = meshGetTrianglePointer(mesh, i);
+	// 		double *a = &(varyings[triangle[0]*ren->varyDim]);
+	// 		double *b = &(varyings[triangle[1]*ren->varyDim]);
+	// 		double *c = &(varyings[triangle[2]*ren->varyDim]);
+	// 		triRender(ren, unif, tex, a, b, c);
+	// 	}
+	// }	
 }
 
 
