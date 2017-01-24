@@ -2,7 +2,7 @@
 
 
 //To Generate tex coord S and T at vector x by applying formulae learnt in class
-void getChi(renRenderer *ren, double unif[], double x[], double a[], double b[], double c[], double attr[]) {
+int getChi(renRenderer *ren, double unif[], double x[], double a[], double b[], double c[], double attr[]) {
 
 	double m[2][2] = {
 		{b[0]-a[0], c[0]-a[0]},
@@ -14,10 +14,10 @@ void getChi(renRenderer *ren, double unif[], double x[], double a[], double b[],
 	};	
 	//apply interpolation formula learnt in class
 	double det = mat22Invert(m,Inv);
-	double vec[2] = {x[0]-a[0], x[1]-a[1]};
-	double pq[2] = {0.0, 0.0};
-	mat221Multiply(Inv,vec,pq);
-	if (det != 0) {
+	if (det > 0) {
+		double vec[2] = {x[0]-a[0], x[1]-a[1]};
+		double pq[2] = {0.0, 0.0};
+		mat221Multiply(Inv,vec,pq);
 		//a temp to hold intermediate results
 		double temp[ren->varyDim];
 		//change to vector
@@ -26,9 +26,10 @@ void getChi(renRenderer *ren, double unif[], double x[], double a[], double b[],
 		vecSubtract(ren->varyDim, c, a, temp);
 		vecScale(ren->varyDim, pq[1], temp, temp);
 		vecAdd(ren->varyDim, temp, attr, attr);
-		vecAdd(ren->varyDim, attr, a, attr);		
+		vecAdd(ren->varyDim, attr, a, attr);
+		return 0;	
 	} else {
-		printf("The matrix doesn't have an Inverse, something is wrong here\n");
+		return 1;
 	}
 
 }
@@ -39,19 +40,19 @@ texture coord and unif background.*/
 void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[], 
 		double a[], double b[], double c[]) {
 
-	double m[2][2] = {
-		{b[0]-a[0], c[0]-a[0]},
-		{b[1]-a[1], c[1]-a[1]}
-	};
-	double Inv[2][2] = {
-		{0.0,0.0},
-		{0.0,0.0}
-	};	
-	//apply interpolation formula learnt in class
-	double det = mat22Invert(m,Inv);	
-	if (det <= 0) {
-		return;
-	}
+	// double m[2][2] = {
+	// 	{b[0]-a[0], c[0]-a[0]},
+	// 	{b[1]-a[1], c[1]-a[1]}
+	// };
+	// double Inv[2][2] = {
+	// 	{0.0,0.0},
+	// 	{0.0,0.0}
+	// };	
+	// //apply interpolation formula learnt in class
+	// double det = mat22Invert(m,Inv);	
+	// if (det <= 0) {
+	// 	return;
+	// }
 	
 	double STvalue[ren->varyDim];
 	double sampleRGBZ[4];
@@ -76,7 +77,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
-					getChi(ren, unif, x, a, b, c, STvalue);
+					if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+						return;
+					}
 					
 					//get RGB infos
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
@@ -97,7 +100,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 					for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 						//get s and t
-						getChi(ren, unif, x, a, b, c, STvalue);
+						if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+							return;
+						}
 						
 						//get RGB infos
 						ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
@@ -116,7 +121,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){	
 					//get s and t
-					getChi(ren, unif, x, a, b, c, STvalue);
+					if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+						return;
+					}
 					
 					//get RGB infos
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
@@ -145,7 +152,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
                 x1_high = c[1] + (b[1]-c[1])/(b[0]-c[0]) * (x[0] - c[0]);
                 for (x[1] = ceil(x1_low); x[1] <= floor(x1_high); x[1] ++) {
 					//get s and t
-					getChi(ren, unif, x, a, b, c, STvalue);
+					if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+						return;
+					}
 					
 					//get RGB infos
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
@@ -172,7 +181,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				x1_high = a[1]+(c[1]-a[1])/(c[0]-a[0])*(x[0]-a[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){
 					//get s and t
-					getChi(ren, unif, x, a, b, c, STvalue);
+					if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+						return;
+					}
 					
 					//get RGB infos
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
@@ -191,7 +202,9 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 				x1_high = c[1]+(b[1]-c[1])/(b[0]-c[0])*(x[0]-c[0]);
 				for (x[1]=(int)ceil(x1_low); x[1]<=(int)floor(x1_high); x[1]++){	
 					//get s and t
-					getChi(ren, unif, x, a, b, c, STvalue);
+					if (getChi(ren, unif, x, a, b, c, STvalue) != 0) {
+						return;
+					}
 					
 					//get RGB infos
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);

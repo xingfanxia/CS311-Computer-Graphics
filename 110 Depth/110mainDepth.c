@@ -85,13 +85,11 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
-    printf("%f %f %f \n",unif[renUNIFAXISX], unif[renUNIFAXISY], unif[renUNIFAXISZ]);
     if (unifParent == NULL) {
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
         nine numbers. We use '(double(*)[3])' to cast it to a 3x3 matrix. */
         mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
-        mat33Print(rotation33);
         mat44Isometry(rotation33, &unif[renUNIFTRANSX], (double(*)[4])(&unif[renUNIFISOMETRY]));
     } else {
         double m[4][4];
