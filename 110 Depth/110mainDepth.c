@@ -199,6 +199,8 @@ int main(void) {
         //Why sphere can't be drawn
     } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
         return 4;
+    } else if (meshInitializeSphere(mesh4, 100, 10, 10) != 0) {
+        return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
     } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
@@ -207,6 +209,8 @@ int main(void) {
         return 8;
     } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, NULL) != 0){
         return 9;
+
+    // Why can't render sphere in scene but its mesh init without trouble 
     // } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){
     //     return 10;
 	}else {
