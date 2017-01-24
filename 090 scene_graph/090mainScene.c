@@ -101,6 +101,7 @@ sceneNode nodeD;
 renRenderer renderer = {
 	.unifDim = 16,
 	.texNum = 2,
+    .attrDim = 4,
 	.varyDim = 4,
 	.transformVertex = transformVertex,
 	.colorPixel = colorPixel,
