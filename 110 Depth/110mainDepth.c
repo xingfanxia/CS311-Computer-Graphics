@@ -40,9 +40,9 @@
 #define renUNIFTRANSY 5
 #define renUNIFTRANSZ 6
 #define renUNIFAXIS 7
-#define renUNIfAXISX 7
-#define renUNIfAXISY 8
-#define renUNIfAXISZ 9
+#define renUNIFAXISX 7
+#define renUNIFAXISY 8
+#define renUNIFAXISZ 9
 #define renUNIFISOMETRY 10
 
 #define renTEXR 0
@@ -85,7 +85,7 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
-    printf("%f %f %f \n",unif[renUNIfAXISX], unif[renUNIfAXISY], unif[renUNIfAXISZ]);
+    printf("%f %f %f \n",unif[renUNIFAXISX], unif[renUNIFAXISY], unif[renUNIFAXISZ]);
     if (unifParent == NULL) {
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
@@ -117,17 +117,19 @@ sceneNode nodeA;
 sceneNode nodeB;
 sceneNode nodeC;
 sceneNode nodeD;
-renRenderer renderer = {
-	.unifDim = 26,
-	.texNum = 2,
-	.varyDim = 3+2+3,
-    .attrDim = 3+2+3,
-	.transformVertex = transformVertex,
-	.colorPixel = colorPixel,
-	.updateUniform = updateUniform
-};
+
 depthBuffer depth_z;
 
+renRenderer renderer = {
+    .unifDim = 26,
+    .texNum = 2,
+    .varyDim = 3+2+3,
+    .attrDim = 3+2+3,
+    .transformVertex = transformVertex,
+    .colorPixel = colorPixel,
+    .updateUniform = updateUniform,
+    .depth = &depth_z
+};
 /*set one uniform in the unif*/
 void sceneSetOneUniform(sceneNode *node, int i, double unif){
         node -> unif[i] = unif;
@@ -136,6 +138,7 @@ void sceneSetOneUniform(sceneNode *node, int i, double unif){
 void draw(void){
     //draw scene from node A
     pixClearRGB(0.0, 0.0, 0.0);
+    depthClearZs(renderer.depth, -9999999);
     sceneRender(&nodeA, &renderer, NULL);
 }
 
@@ -159,35 +162,49 @@ int main(void) {
 	tex[0] = &texture;
 	tex[0]->filtering = texQUADRATIC;
 
+    depthBuffer *dp = &depth_z;
+    // depthInitialize(dp, 512, 512);    
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
 	double unifA[3+1+3+3+16] = {1.0, 1.0, 1.0, 
         0.5, 0.0, 0.0, 0.0, 
         50.0, 50.0, 20.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifB[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifC[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifD[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-	
+    double unifB[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.9, 0.0, 0.0, 0.0, 
+        40.0, 20.0, 10.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifC[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.3, 0.0, 0.0, 0.0, 
+        50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifD[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.7, 0.0, 0.0, 0.0, 
+        50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};	
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
 		return 1;
+    } else if (depthInitialize(dp, 512, 512) != 0) {
+        return 2;
 	// } else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
  //        return 2;
  //    } else if (meshInitializeEllipse(mesh2, 250.0, 200.0, 50.0, 50.0, 50.0) != 0){
  //        return 3;
  //    } else if (meshInitializeEllipse(mesh3, 150.0, 150.0, 60.0, 60.0, 50.0) != 0){
  //        return 4;
- //    } else if (meshInitializeEllipse(mesh4, 350.0, 350.0, 70.0, 70.0, 50.0) != 0){
- //        return 5;
+    // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
+    //     return 5;
     } else if (meshInitializeBox(mesh1, 50.0, 150.0, 50.0, 150.0, 50.0, 150.0) != 0){
         return 3;
+    } else if (meshInitializeBox(mesh2, 150.0, 290.0, 150.0, 200.0, 150.0, 200.0) != 0){
+        return 4;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
-    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, NULL, NULL) != 0){
+    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
-    // } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
-    //     return 8;
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
+        return 8;
     // } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, &nodeD) != 0){
     //     return 9;
     // } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){
@@ -208,6 +225,7 @@ int main(void) {
         sceneDestroy(&nodeB);
         sceneDestroy(&nodeC);
         sceneDestroy(&nodeD);
+        depthDestroy(&depth_z);
 		return 0;
 	}	
 }

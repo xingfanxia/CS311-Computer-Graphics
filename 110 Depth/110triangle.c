@@ -82,8 +82,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 					
 					//Compare Z value to what stored in depth buffer
-					if (sampleRGBZ[3] > *ren->depth->z) {
-						*ren->depth->z = sampleRGBZ[3];
+					if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+						depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 						pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 					}
 				}
@@ -103,8 +103,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 						ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 						
 						//Compare Z value to what stored in depth buffer
-						if (sampleRGBZ[3] > *ren->depth->z) {
-							*ren->depth->z = sampleRGBZ[3];
+						if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+							depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 							pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 						}
 					}
@@ -122,8 +122,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 					
 					//Compare Z value to what stored in depth buffer
-					if (sampleRGBZ[3] > *ren->depth->z) {
-						*ren->depth->z = sampleRGBZ[3];
+					if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+						depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 						pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 					}
 				}
@@ -151,8 +151,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 					
 					//Compare Z value to what stored in depth buffer
-					if (sampleRGBZ[3] > *ren->depth->z) {
-						*ren->depth->z = sampleRGBZ[3];
+					if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+						depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 						pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 					}
 				}
@@ -178,8 +178,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 					
 					//Compare Z value to what stored in depth buffer
-					if (sampleRGBZ[3] > *ren->depth->z) {
-						*ren->depth->z = sampleRGBZ[3];
+					if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+						depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 						pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 					}
 				}
@@ -197,8 +197,8 @@ void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[],
 					ren->colorPixel(ren, unif, tex, STvalue, sampleRGBZ);
 					
 					//Compare Z value to what stored in depth buffer
-					if (sampleRGBZ[3] > *ren->depth->z) {
-						*ren->depth->z = sampleRGBZ[3];
+					if (sampleRGBZ[3] > depthGetZ(ren->depth, x[0], x[1])) {
+						depthSetZ(ren->depth, x[0], x[1], sampleRGBZ[3]);
 						pixSetRGB(x[0], x[1], sampleRGBZ[0], sampleRGBZ[1], sampleRGBZ[2]);
 					}
 				}

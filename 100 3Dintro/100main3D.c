@@ -154,10 +154,18 @@ int main(void) {
         0.5, 0.0, 0.0, 0.0, 
         50.0, 50.0, 20.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifB[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifC[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifD[3+1+3+3+16] = {1.0, 1.0, 1.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-	
+    double unifB[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.9, 0.0, 0.0, 0.0, 
+        40.0, 20.0, 10.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifC[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.3, 0.0, 0.0, 0.0, 
+        50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    double unifD[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+        0.7, 0.0, 0.0, 0.0, 
+        50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};	
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
 		return 1;
@@ -171,10 +179,14 @@ int main(void) {
  //        return 5;
     } else if (meshInitializeBox(mesh1, 50.0, 150.0, 50.0, 150.0, 50.0, 150.0) != 0){
         return 3;
+    } else if (meshInitializeBox(mesh2, 150.0, 290.0, 150.0, 200.0, 150.0, 200.0) != 0){
+        return 4;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
-    	return 6;
-    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, NULL, NULL) != 0){
+        return 6;
+    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
+        return 8;
     // } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
     //     return 8;
     // } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, &nodeD) != 0){
