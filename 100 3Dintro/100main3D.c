@@ -181,14 +181,16 @@ int main(void) {
         return 3;
     } else if (meshInitializeBox(mesh2, 150.0, 290.0, 150.0, 200.0, 150.0, 200.0) != 0){
         return 4;
+    } else if (meshInitializeSphere(mesh3, 50.0, 20, 20) != 0){
+        return 4;        
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
         return 6;
     } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
-    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
         return 8;
-    // } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
-    //     return 8;
+    } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, NULL) != 0){
+        return 8;
     // } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh3, NULL, &nodeD) != 0){
     //     return 9;
     // } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){

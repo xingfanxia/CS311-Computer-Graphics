@@ -163,7 +163,6 @@ int main(void) {
 	tex[0]->filtering = texQUADRATIC;
 
     depthBuffer *dp = &depth_z;
-    // depthInitialize(dp, 512, 512);    
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
 	double unifA[3+1+3+3+16] = {1.0, 1.0, 1.0, 
@@ -197,9 +196,10 @@ int main(void) {
     //     return 5;
     } else if (meshInitializeBox(mesh1, 50.0, 150.0, 50.0, 150.0, 50.0, 150.0) != 0){
         return 3;
-    } else if (meshInitializeBox(mesh2, 150.0, 290.0, 150.0, 200.0, 150.0, 200.0) != 0){
+    } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
         return 4;
-    } else if (meshInitializeSphere(mesh3, 100.0, 50, 50) != 0){
+        //Why sphere can't be drawn
+    } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
         return 4;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
