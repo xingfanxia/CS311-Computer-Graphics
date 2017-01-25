@@ -31,3 +31,7 @@ Introduce 3D, some simple modification based on 2D does the job.
 ### 110 Draw 3D with Depth in Consideration
 
 Modification on 100 to comply with introduction of the concept of Depth. Apply the Z-buffer to engine.
+
+### Bugs
+
+- Sphere can be rendered as mesh but rendering it in the scene node throws a bus error.
