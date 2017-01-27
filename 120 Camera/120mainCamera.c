@@ -9,11 +9,13 @@
 #include "100vector.c"
 #include "100matrix.c"
 #include "040texture.c"
-#include "110renderer.c"
+#include "120renderer.c"
 
-
-#define renVARYDIMBOUND 32
+//Defining bounds
+#define renVARYDIMBOUND 42
 #define renVERTNUMBOUND 1000
+
+//Attr indices
 #define renATTRX 0
 #define renATTRY 1
 #define renATTRZ 2
@@ -23,6 +25,7 @@
 #define renATTRG 6
 #define renATTRB 7
 
+//Vary indices
 #define renVARYX 0
 #define renVARYY 1
 #define renVARYZ 2
@@ -32,6 +35,7 @@
 #define renVARYG 6
 #define renVARYB 7
 
+//UNIF indices
 #define renUNIFR 0
 #define renUNIFG 1
 #define renUNIFB 2
@@ -46,10 +50,16 @@
 #define renUNIFISOMETRY 10
 #define renUNIFCAMERAVIEWING 26
 
+//tex indices
 #define renTEXR 0
 #define renTEXG 1
 #define renTEXB 2
 
+//keys for control
+#define W_KEY 87
+#define S_KEY 83
+#define A_KEY 65
+#define D_KEY 68
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
@@ -65,50 +75,41 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
-    //modelling transformation
-	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, vary);
 
-    //viewing transformation
-    mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), vary, vary);
+    //temp holder for result of C-Inv and M (Viewing and Modelling transformation)
+    double scene[4][4];
+
+    //C-Inv and M
+    mat444Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), (double(*)[4])(&unif[renUNIFCAMERAVIEWING]), scene);
+
+    //then do it over the original coords
+	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
+    mat441Multiply(scene, original, vary);
     
     //reset S and T for tex coords   
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
 
-void transformVertex0(renRenderer *ren, double unif[], double attr[], 
-        double vary[]) {
-    double transf[4];
-    double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, transf);
-    vecCopy(3, transf, vary);
-}
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
 rotation-translation M described by the other uniforms. If unifParent is not 
 NULL, but instead contains a rotation-translation P, then sets the uniform 
 matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
-    double rotation33[3][3];
-    vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
-    mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
-    // unif[renUNIFCAMERAVIEWING] = ren->viewing;
-    // memcpy(&unif[renUNIFCAMERAVIEWING], ren->viewing, sizeof(ren->viewing));
-    double temp[16];
-
+    //load viewing into UNIF
     for (int i = 0; i < 4; i+=1) {
         for (int j = 0; j<4; j+=1) {
             int pos = renUNIFCAMERAVIEWING + i*4 + j;
-            printf("%d, [%d, %d], %f\n", pos, i,j, ren->viewing[i][j]);
+            // printf("%d, [%d, %d], %f\n", pos, i,j, ren->viewing[i][j]);
             unif[pos] = ren->viewing[i][j];
         }
     }
-    // mat44Print(ren->viewing);
-    // vecPrint(42, unif);
-    // for (int i = 0; i < 15; i+=1) {
-    //     unif[i+renUNIFCAMERAVIEWING] = temp[i];
-    // }
+
+    double rotation33[3][3];
+    vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
+    mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
+    double temp[16];
 
     if (unifParent == NULL) {
         /* The nine uniforms for storing the matrix start at index 
@@ -142,27 +143,62 @@ sceneNode nodeD;
 depthBuffer depth_z;
 
 renRenderer renderer = {
-    .unifDim = 26,
+    .unifDim = 42,
     .texNum = 1,
     .varyDim = 3+2,
     .attrDim = 3+2+3,
     .transformVertex = transformVertex,
     .colorPixel = colorPixel,
     .updateUniform = updateUniform,
-    .depth = &depth_z
+    .depth = &depth_z,
+    .cameraRotation = {
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1}
+    },
+    .viewing = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    },
+    .cameraTranslation = {0, 0, 0},
 };
+
+//move the camera
+void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
+        int altOptionIsDown, int superCommandIsDown) {
+    // W for up, S for down, A for right, D for Left like what it is set up
+    // in most video games
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == W_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[0] += 20;
+    }
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == S_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[0] -= 20;
+    }
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == A_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[1] -= 20;
+    }
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == D_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[1] += 20;
+    }
+}
 
 
 void draw(void){
     //draw scene from node A
     pixClearRGB(0.0, 0.0, 0.0);
-    depthClearZs(renderer.depth, -9999999);
     sceneRender(&nodeA, &renderer, NULL);
-    renUpdateViewing(&renderer);
-    matPrint(ren->viewing);
+    
 }
 
 void handleTimeStep(double oldTime, double newTime) {
+    depthClearZs(renderer.depth, -9999999);
+    renUpdateViewing(&renderer);
     //redraw the scene by a new unifAnge theta as time changes
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
@@ -185,19 +221,19 @@ int main(void) {
     depthBuffer *dp = &depth_z;
 
     //set camera
-    double cameraPos[3] = {200, 200, 200};
-    double cameraPhi = 1.7;
-    double cameraTheta = 1.7;
+    double cameraPos[3] = {0, 0, 0};
+    double cameraPhi = 0.0;
+    double cameraTheta = 0.0;
     renLookFrom(ren, cameraPos, cameraPhi, cameraTheta);
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
 	double unifA[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.5, 0.0, 0.0, 0.0, 
+        0.5, 150.0, 150.0, 0.0, 
         50.0, 50.0, 20.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifB[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.9, 0.0, 0.0, 0.0, 
+        0.9, 140.0, 140.0, 0.0, 
         40.0, 20.0, 10.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
@@ -248,7 +284,8 @@ int main(void) {
     //     return 10;
 	}else {
         //draw the scene
-		draw();
+		// draw();
+        pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
 		pixRun();
 
