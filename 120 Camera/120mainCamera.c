@@ -1,5 +1,5 @@
-//Xingfan Xia Jan 20th
-//clang 110mainDepth.c 000pixel.o -lglfw -framework OpenGL; ./a.out
+//Xingfan Xia Jan 27th
+//clang 120mainCamera.c 000pixel.o -lglfw -framework OpenGL; ./a.out
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -287,8 +287,12 @@ int main(void) {
 		// draw();
         pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
+        printf("Controls: W for moving the Camera Up\n");
+        printf("Controls: S for moving the Camera Down\n");
+        printf("Controls: A for moving the Camera Left\n");
+        printf("Controls: D for moving the Camera Right\n");
 		pixRun();
-
+        
         //destroy
 		texDestroy(tex[0]);
 		meshDestroy(mesh1);

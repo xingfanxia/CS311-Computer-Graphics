@@ -1,6 +1,3 @@
-
-
-
 /*** Creating and destroying ***/
 
 /* Feel free to read the struct's members, but don't write them, except through 
