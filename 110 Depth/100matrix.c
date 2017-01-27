@@ -129,7 +129,7 @@ void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3]) {
 	double identity[3][3] = {
 	  1,0,0,
 	  0,1,0,
-	  1,0,1,
+	  0,0,1,
 	};
 	double rAddPart1[3][3];
 	double rAddPart2[3][3];

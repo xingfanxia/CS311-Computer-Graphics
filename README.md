@@ -32,6 +32,9 @@ Introduce 3D, some simple modification based on 2D does the job.
 
 Modification on 100 to comply with introduction of the concept of Depth. Apply the Z-buffer to engine.
 
+### 120 Incorporate the concept of camera
+
 ### Bugs
 
-- Sphere can be rendered as mesh but rendering it in the scene node throws a bus error.
+- ~~Sphere can be rendered as mesh but rendering it in the scene node throws a bus error.~~ Solved by updating constant `renVERTNUMBOUND` to 1000.
+- ~~Rotation is weird, the scene is distorted during rotation.~~ Solved by updating a 0 to 1 in `void mat33AngleAxisRotation`.

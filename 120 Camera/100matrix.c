@@ -14,6 +14,14 @@ void mat33Print(double m[3][3]) {
     }
 }
 
+void matPrint(double m[4][4]) {
+    for (int i = 0; i < 4; i+=1) {
+        for (int j = 0; j< 4; j+=1) {
+            printf("%f,", m[i][j]);
+        }
+        printf("\n");
+    }
+}
 /* Returns the determinant of the matrix m. If the determinant is 0.0, then the 
 matrix is not invertible, and mInv is untouched. If the determinant is not 0.0, 
 then the matrix is invertible, and its inverse is placed into mInv. */

@@ -12,7 +12,7 @@
 
 
 #define renVARYDIMBOUND 16
-#define renVERTNUMBOUND 16
+#define renVERTNUMBOUND 1000
 #define renATTRX 0
 #define renATTRY 1
 #define renATTRZ 2
@@ -75,13 +75,11 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
-    printf("%f %f %f \n",unif[renUNIfAXISX], unif[renUNIfAXISY], unif[renUNIfAXISZ]);
     if (unifParent == NULL) {
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
         nine numbers. We use '(double(*)[3])' to cast it to a 3x3 matrix. */
         mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
-        mat33Print(rotation33);
         mat44Isometry(rotation33, &unif[renUNIFTRANSX], (double(*)[4])(&unif[renUNIFISOMETRY]));
     } else {
         double m[4][4];
@@ -181,7 +179,7 @@ int main(void) {
         return 3;
     } else if (meshInitializeBox(mesh2, 150.0, 290.0, 150.0, 200.0, 150.0, 200.0) != 0){
         return 4;
-    } else if (meshInitializeSphere(mesh3, 50.0, 20, 20) != 0){
+    } else if (meshInitializeSphere(mesh3, 50.0, 40, 40) != 0){
         return 4;        
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
         return 6;

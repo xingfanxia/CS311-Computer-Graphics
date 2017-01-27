@@ -44,6 +44,7 @@
 #define renUNIFAXISY 8
 #define renUNIFAXISZ 9
 #define renUNIFISOMETRY 10
+#define renUNIFCAMERAVIEWING 26
 
 #define renTEXR 0
 #define renTEXG 1
@@ -64,8 +65,14 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
+    //modelling transformation
 	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, vary);
+
+    //viewing transformation
+    mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), vary, vary);
+    
+    //reset S and T for tex coords   
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
@@ -86,7 +93,23 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
     mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
-    // vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
+    // unif[renUNIFCAMERAVIEWING] = ren->viewing;
+    // memcpy(&unif[renUNIFCAMERAVIEWING], ren->viewing, sizeof(ren->viewing));
+    double temp[16];
+
+    for (int i = 0; i < 4; i+=1) {
+        for (int j = 0; j<4; j+=1) {
+            int pos = renUNIFCAMERAVIEWING + i*4 + j;
+            printf("%d, [%d, %d], %f\n", pos, i,j, ren->viewing[i][j]);
+            unif[pos] = ren->viewing[i][j];
+        }
+    }
+    // mat44Print(ren->viewing);
+    // vecPrint(42, unif);
+    // for (int i = 0; i < 15; i+=1) {
+    //     unif[i+renUNIFCAMERAVIEWING] = temp[i];
+    // }
+
     if (unifParent == NULL) {
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
@@ -135,6 +158,8 @@ void draw(void){
     pixClearRGB(0.0, 0.0, 0.0);
     depthClearZs(renderer.depth, -9999999);
     sceneRender(&nodeA, &renderer, NULL);
+    renUpdateViewing(&renderer);
+    matPrint(ren->viewing);
 }
 
 void handleTimeStep(double oldTime, double newTime) {
@@ -142,8 +167,8 @@ void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
         //what to do to make it move
-        sceneSetOneUniform(&nodeA, renUNIFTHETA, newTime*1);
-        draw();
+    sceneSetOneUniform(&nodeA, renUNIFTHETA, newTime*1);
+    draw();
 }
 
 int main(void) {
@@ -158,23 +183,33 @@ int main(void) {
 	tex[0]->filtering = texQUADRATIC;
 
     depthBuffer *dp = &depth_z;
+
+    //set camera
+    double cameraPos[3] = {200, 200, 200};
+    double cameraPhi = 1.7;
+    double cameraTheta = 1.7;
+    renLookFrom(ren, cameraPos, cameraPhi, cameraTheta);
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
-	double unifA[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+	double unifA[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
         0.5, 0.0, 0.0, 0.0, 
         50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifB[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+    double unifB[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
         0.9, 0.0, 0.0, 0.0, 
         40.0, 20.0, 10.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifC[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+    double unifC[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
         0.3, 200.0, 200.0, 0.0, 
         50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifD[3+1+3+3+16] = {1.0, 1.0, 1.0, 
+    double unifD[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
         0.7, 0.0, 0.0, 0.0, 
         50.0, 50.0, 20.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};	
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
