@@ -34,6 +34,12 @@ Modification on 100 to comply with introduction of the concept of Depth. Apply t
 
 ### 120 Incorporate the concept of camera
 
+Camera activities means inverse of its activities on the model. So just implement an inverse isometry on the model with any camera action.
+
+### 130 Perspective Projection
+
+Implement projection to make the modeling world more realistic and the view point more from a human perspective.
+
 ### Bugs
 
 - ~~Sphere can be rendered as mesh but rendering it in the scene node throws a bus error.~~ Solved by updating constant `renVERTNUMBOUND` to 1000.
