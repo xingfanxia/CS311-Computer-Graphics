@@ -11,6 +11,8 @@
 #include "040texture.c"
 #include "120renderer.c"
 
+//Define window size
+
 //Defining bounds
 #define renVARYDIMBOUND 42
 #define renVERTNUMBOUND 1000
