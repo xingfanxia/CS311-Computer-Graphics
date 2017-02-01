@@ -60,15 +60,46 @@ void renLookFrom(renRenderer *ren, double position[3], double phi,
     vecCopy(3, position, ren->cameraTranslation);
 }
 
-/* Updates the renderer's viewing transformation, based on the camera. */
-void renUpdateViewing(renRenderer *ren) {
-    /* Your job is to implement this function!! */
-	mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
+// /* Updates the renderer's viewing transformation, based on the camera. */
+// void renUpdateViewing(renRenderer *ren) {
+//     /* Your job is to implement this function!! */
+// 	mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
 
-    //Todo: incorporates projection here
-    //incorporates the projection into ren->viewing, based on projection and projectionType, 
-    //and loads the viewport transformation into ren->viewport. 
-    //How does it know the width and height? From its depth buffer.
+//     //Todo: incorporates projection here
+//     //incorporates the projection into ren->viewing, based on projection and projectionType, 
+//     //and loads the viewport transformation into ren->viewport. 
+//     //How does it know the width and height? From its depth buffer.
+//     //
+//     double projectionMat[4][4];
+//     if (ren->projectionType == renORTHOGRAPHIC) {
+//         mat44Orthographic(ren->projection[0], ren->projection[1], ren->projection[2], ren->projection[3],
+//             ren->projection[4], ren->projection[5], projectionMat);   
+//     } else if (ren->projectionType == renORTHOGRAPHIC) {
+//         mat44Perspective(ren->projection[0], ren->projection[1], ren->projection[2], ren->projection[3],
+//             ren->projection[4], ren->projection[5], projectionMat);
+//     }
+//     mat444Multiply(projectionMat, ren->viewing, ren->viewing);
+//     mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
+// }
+
+void renUpdateViewing(renRenderer *ren) {
+    double viewing[4][4];
+    double proj[4][4];
+    mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
+    mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, viewing);
+    if (ren->projectionType == renORTHOGRAPHIC){
+        mat44Orthographic(ren->projection[renPROJL], ren->projection[renPROJR],
+            ren->projection[renPROJB], ren->projection[renPROJT],ren->projection[renPROJN], 
+            ren->projection[renPROJF],proj);
+    }
+    else{
+        mat44Perspective(ren->projection[renPROJL], ren->projection[renPROJR],
+            ren->projection[renPROJB], ren->projection[renPROJT],ren->projection[renPROJN], 
+            ren->projection[renPROJF],proj);  
+    }
+    mat444Multiply(proj, viewing, ren->viewing);
+
+
 }
 
 /* Sets the projection type, to either renORTHOGRAPHIC or renPERSPECTIVE. */
@@ -111,6 +142,7 @@ void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal,
     ren->projection[renPROJR] = ren->projection[renPROJT] * 
         (double)(ren->depth->width) / (double)(ren->depth->height);
     ren->projection[renPROJL] = -ren->projection[renPROJR];
+    vecPrint(6, ren->projection);
 }
 
 
