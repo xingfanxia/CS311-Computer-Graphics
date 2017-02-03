@@ -9,7 +9,7 @@
 #include "100vector.c"
 #include "130matrix.c"
 #include "040texture.c"
-#include "2130renderer.c"
+#include "130renderer.c"
 
 //Define window size
 
@@ -267,14 +267,12 @@ int main(void) {
 
     //set camera
     double cameraPos[3] = {0, 0, 0};
-    double cameraPhi = 0.0;
-    double cameraTheta = 0.0;
-    renLookFrom(ren, cameraPos, cameraPhi, cameraTheta);
+    double objPos[3] =  {0, 0, 0};
+    double cameraPhi = M_PI/3;
+    double cameraTheta = M_PI/3;
+    renLookAt(ren, objPos, 20, cameraPhi, cameraTheta);
 
-    //set projection and view
-    depthInitialize(dp, 512, 512);
-    //renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
-    // vecPrint(6, ren->projection);
+
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
 	double unifA[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
@@ -300,8 +298,8 @@ int main(void) {
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
 		return 1;
-    // } else if (depthInitialize(dp, 512, 512) != 0) {
-    //     return 2;
+    } else if (depthInitialize(dp, 512, 512) != 0) {
+        return 2;
 	// } else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
  //        return 2;
  //    } else if (meshInitializeEllipse(mesh2, 250.0, 200.0, 50.0, 50.0, 50.0) != 0){
@@ -310,23 +308,23 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 50.0, 150.0, 50.0, 150.0, 50.0, 150.0) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 3, 0, 3, 0, 3) != 0){
         return 3;
-    } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
-        return 4;
-        //Why sphere can't be drawn
-    } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
-        return 4;
-    } else if (meshInitializeSphere(mesh4, 100, 20, 40) != 0) {
+    // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
+    //     return 4;
+    //     //Why sphere can't be drawn
+    // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
+    //     return 4;
+    } else if (meshInitializeSphere(mesh2, 0, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
     } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
-    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, &nodeC, NULL) != 0){
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
         return 8;
-    } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh4, NULL, NULL) != 0){
-        return 9;
+    // } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh4, NULL, NULL) != 0){
+    //     return 9;
 
 
     // Why can't render sphere in scene but its mesh init without trouble 
@@ -335,6 +333,7 @@ int main(void) {
 	}else {
         //draw the scene
 		// draw();
+        renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
         pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
         printf("Controls: W for moving the Camera Up\n");

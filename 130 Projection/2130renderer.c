@@ -1,8 +1,5 @@
-/**
- * 120renderer.c
- * Kaixing Wu
- * Jan 26 2017
- */
+/*Author: Yanhan Lyu*/
+
 #define renORTHOGRAPHIC 0
 #define renPERSPECTIVE 1
 #define renPROJL 0
@@ -12,25 +9,84 @@
 #define renPROJF 4
 #define renPROJN 5
 
+/*Author: Yanhan Lyu*/
+/* This first piece of code declares a new data type called renRenderer. */
 typedef struct renRenderer renRenderer;
 
+/* This second piece of code declares the struct that underlies the type. */
 struct renRenderer {
-	int unifDim;		
-	int texNum;			
-	int attrDim;
-	int varyDim;
-    void (*colorPixel)(renRenderer *ren, double unif[], texTexture *tex[], 
-        double vary[], double rgb[]);
-    void (*transformVertex)(renRenderer *ren, double unif[], double attr[], double vary[]);
-    void (*updateUniform) (renRenderer *ren, double unif[], double unifParent[]);
     depthBuffer *depth;
-    double cameraRotation[3][3];	
-    double cameraTranslation[3];
+    int varyDim;
+    int unifDim;
+    int texNum;
+    int attrDim;
+    double cameraRotation[3][3];
+    double cameraTranslation [3];
     double viewing[4][4];
     double projection[6];
     int projectionType;
     double viewport[4][4];
+    /* declare function pointer*/
+    void (*colorPixel)(struct renRenderer *renRenderer, double unif[], texTexture *tex[], double vary[], double rgb[]);
+    void (*transformVertex)(struct renRenderer *renRenderer, double unif[], double attr[], double vary[]);
+    void (*updateUniform)(struct renRenderer *ren, double unif[], double unifParent[]);
 };
+
+void mat44Print(double m[4][4]) {
+    int i;
+    for (i = 0; i < 4; i += 1)
+        printf("%f    %f     %f    %f\n", m[i][0], m[i][1],m[i][2], m[i][3]);
+}
+
+/* Sets the camera's rotation and translation, in a manner suitable for third-
+person viewing. The camera is aimed at the world coordinates target. The camera 
+itself is displaced from that target by a distance rho, in the direction 
+specified by the spherical coordinates phi and theta (as in vec3Spherical). 
+Under normal use the camera's up-direction is world-up, or as close to it as 
+possible. */
+void renLookAt(renRenderer *ren, double target[3], double rho, double phi, 
+        double theta) {
+    double z[3], y[3], yStd[3] = {0.0, 1.0, 0.0}, zStd[3] = {0.0, 0.0, 1.0};
+    vec3Spherical(1.0, phi, theta, z);
+    vec3Spherical(1.0, M_PI / 2.0 - phi, theta + M_PI, y);
+    mat33BasisRotation(yStd, zStd, y, z, ren->cameraRotation);
+    vecScale(3, rho, z, ren->cameraTranslation);
+    vecAdd(3, target, ren->cameraTranslation, ren->cameraTranslation);
+}
+
+/* Sets the camera's rotation and translation, in a manner suitable for first-
+person viewing. The camera is positioned at the world coordinates position. 
+From that position, the camera's sight direction is described by the spherical 
+coordinates phi and theta (as in vec3Spherical). Under normal use the camera's 
+up-direction is world-up, or as close to it as possible. */
+void renLookFrom(renRenderer *ren, double position[3], double phi, 
+        double theta) {
+    double negZ[3], y[3];
+    double yStd[3] = {0.0, 1.0, 0.0}, negZStd[3] = {0.0, 0.0, -1.0};
+    vec3Spherical(1.0, phi, theta, negZ);
+    vec3Spherical(1.0, M_PI / 2.0 - phi, theta + M_PI, y);
+    mat33BasisRotation(yStd, negZStd, y, negZ, ren->cameraRotation);
+    vecCopy(3, position, ren->cameraTranslation);
+}
+
+/* Updates the renderer's viewing transformation, based on the camera. */
+void renUpdateViewing(renRenderer *ren) {
+    double proj[4][4];
+    double camera[4][4];
+    mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
+    mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, camera);
+    if (ren->projectionType == renORTHOGRAPHIC){
+        //printf("here!!!!!!!");
+        mat44Orthographic(ren->projection[renPROJL], ren->projection[renPROJR],ren->projection[renPROJB], 
+            ren->projection[renPROJT], ren->projection[renPROJF], ren->projection[renPROJN], proj);
+    } else if (ren->projectionType == renPERSPECTIVE){
+        mat44Perspective(ren->projection[renPROJL], ren->projection[renPROJR], ren->projection[renPROJB], 
+            ren->projection[renPROJT],ren->projection[renPROJF], ren->projection[renPROJN], proj);
+    }
+
+    mat444Multiply(proj,camera, ren->viewing);
+
+}
 
 
 /* Sets the projection type, to either renORTHOGRAPHIC or renPERSPECTIVE. */
@@ -76,71 +132,3 @@ void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal,
 }
 
 
-/* Sets the camera's rotation and translation, in a manner suitable for third-
-person viewing. The camera is aimed at the world coordinates target. The camera 
-itself is displaced from that target by a distance rho, in the direction 
-specified by the spherical coordinates phi and theta (as in vec3Spherical). 
-Under normal use, where 0 < phi < pi, the camera's up-direction is world-up, or 
-as close to it as possible. */
-void renLookAt(renRenderer *ren, double target[3], double rho, double phi, 
-        double theta) {
-    double z[3], y[3], yStd[3] = {0.0, 1.0, 0.0}, zStd[3] = {0.0, 0.0, 1.0};
-    vec3Spherical(1.0, phi, theta, z);
-    vec3Spherical(1.0, M_PI / 2.0 - phi, theta + M_PI, y);
-    mat33BasisRotation(yStd, zStd, y, z, ren->cameraRotation);
-    vecScale(3, rho, z, ren->cameraTranslation);
-    vecAdd(3, target, ren->cameraTranslation, ren->cameraTranslation);
-}
-
-/* Sets the camera's rotation and translation, in a manner suitable for first-
-person viewing. The camera is positioned at the world coordinates position. 
-From that position, the camera's sight direction is described by the spherical 
-coordinates phi and theta (as in vec3Spherical). Under normal use, where 
-0 < phi < pi, the camera's up-direction is world-up, or as close to it as 
-possible. */
-void renLookFrom(renRenderer *ren, double position[3], double phi, 
-        double theta) {
-    double negZ[3], y[3];
-    double yStd[3] = {0.0, 1.0, 0.0}, negZStd[3] = {0.0, 0.0, -1.0};
-    vec3Spherical(1.0, phi, theta, negZ);
-    vec3Spherical(1.0, M_PI / 2.0 - phi, theta + M_PI, y);
-    mat33BasisRotation(yStd, negZStd, y, negZ, ren->cameraRotation);
-    vecCopy(3, position, ren->cameraTranslation);
-}
-
-/* Updates the renderer's viewing transformation, based on the camera. */
-void renUpdateViewing(renRenderer *ren) {
-    double viewing[4][4];
-    double proj[4][4];
-    mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
-    mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, viewing);
-    if (ren->projectionType == renORTHOGRAPHIC){
-        mat44Orthographic(ren->projection[renPROJL], ren->projection[renPROJR],
-            ren->projection[renPROJB], ren->projection[renPROJT],ren->projection[renPROJN], 
-            ren->projection[renPROJF],proj);
-    }
-    else{
-        mat44Perspective(ren->projection[renPROJL], ren->projection[renPROJR],
-            ren->projection[renPROJB], ren->projection[renPROJT],ren->projection[renPROJN], 
-            ren->projection[renPROJF],proj);  
-    }
-    mat444Multiply(proj, viewing, ren->viewing);
-
-
-}
-
-// void renUpdateViewing(renRenderer *ren) {
-//     double proj[4][4];
-//     double camera[4][4];
-//     mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
-//     mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, camera);
-//     if (ren->projectionType == renORTHOGRAPHIC){
-//         //printf("here!!!!!!!");
-//         mat44Orthographic(ren->projection[renPROJL], ren->projection[renPROJR],ren->projection[renPROJB], 
-//             ren->projection[renPROJT], ren->projection[renPROJF], ren->projection[renPROJN], proj);
-//     } else if (ren->projectionType == renPERSPECTIVE){
-//         mat44Perspective(ren->projection[renPROJL], ren->projection[renPROJR], ren->projection[renPROJB], 
-//             ren->projection[renPROJT],ren->projection[renPROJF], ren->projection[renPROJN], proj);
-//     }
-//     mat444Multiply(proj,camera, ren->viewing);
-// }
