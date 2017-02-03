@@ -89,12 +89,9 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     //world to eye
     mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), world, vary);
 
-    //eye to projection
-    vecScale(4, 1/vary[renVARYW], vary, vary);
-    mat441Multiply(ren->viewport, vary, vary);
-    //reset S and T for tex coords   
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
+     printf("vary, %f, %f, %f, %f, %f, %f\n", vary[0],vary[1],vary[2], vary[3], vary[4], vary[5]);
 }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
@@ -132,8 +129,10 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 
 
 #include "110triangle.c"
-#include "100mesh.c"
+#include "140clipping.c"
+#include "140mesh.c"
 #include "090scene.c"
+
 texTexture texture;
 meshMesh mesher_1;
 meshMesh mesher_2;
@@ -169,7 +168,7 @@ renRenderer renderer = {
     },
     .cameraTranslation = {0, 0, 0},
     // .projection = {0, 512, 0, 512, 0, 512},
-    .projectionType = 1,
+    .projectionType = 0,
     // .viewport = {
     //     {1, 0, 0, 0},
     //     {0, 1, 0, 0},

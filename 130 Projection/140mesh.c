@@ -119,7 +119,7 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 			double *a = &(varyings[triangle[0]*ren->varyDim]);
 			double *b = &(varyings[triangle[1]*ren->varyDim]);
 			double *c = &(varyings[triangle[2]*ren->varyDim]);
-			triRender(ren, unif, tex, a, b, c);
+			clipRender(ren, unif, tex, a, b, c);
 		}
 	}	
 }
