@@ -10,10 +10,6 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
 	double vectorA[renVARYDIMBOUND];
 	double vectorB[renVARYDIMBOUND];
 	double vectorC[renVARYDIMBOUND];
-
-	vecScale(4, 1/a[renVARYW], a, a);
-	vecScale(4, 1/b[renVARYW], b, b);
-	vecScale(4, 1/c[renVARYW], c, c);
     
     vecScale(4, 1/viewA[renVARYW], viewA, viewA);
 	vecScale(4, 1/viewB[renVARYW], viewB, viewB);
