@@ -249,8 +249,8 @@ plane the box is the same rectangle R. Keep in mind that 0 > near > far. Maps
 the viewing volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Orthographic(double left, double right, double bottom, double top, 
         double far, double near, double proj[4][4]){
-  	for (int i = 0; i < 3; i++) {
-  		for (int j = 0; j < 3; j++) {
+  	for (int i = 0; i < 4; i++) {
+  		for (int j = 0; j < 4; j++) {
   			proj[i][j] = 0;
   		}
   	}
@@ -265,8 +265,8 @@ void mat44Orthographic(double left, double right, double bottom, double top,
 /* Builds a 4x4 matrix that maps a projected viewing volume 
 [-1, 1] x [-1, 1] x [-1, 1] to screen [0, w - 1] x [0, h - 1] x [-1, 1]. */
 void mat44Viewport(double width, double height, double view[4][4]){
-	for (int i = 0; i < 3; i++) {
-  		for (int j = 0; j < 3; j++) {
+	for (int i = 0; i < 4; i++) {
+  		for (int j = 0; j < 4; j++) {
   			view[i][j] = 0;
   		}
   	}
@@ -284,8 +284,8 @@ far plane, the frustum is the rectangle (far / near) * R. Maps the viewing
 volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Perspective(double left, double right, double bottom, double top, 
         double far, double near, double proj[4][4]){
-	for (int i = 0; i < 3; i++) {
-  		for (int j = 0; j < 3; j++) {
+	for (int i = 0; i < 4; i++) {
+  		for (int j = 0; j < 4; j++) {
   			proj[i][j] = 0;
   		}
   	}

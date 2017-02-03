@@ -31,6 +31,7 @@
 #define renVARYX 0
 #define renVARYY 1
 #define renVARYZ 2
+#define renVARYW 3
 #define renVARYS 3
 #define renVARYT 4
 #define renVARYR 5
@@ -62,6 +63,8 @@
 #define S_KEY 83
 #define A_KEY 65
 #define D_KEY 68
+#define One_KEY 49
+#define TWO_KEY 50
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
@@ -75,7 +78,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 }
 
 /* Writes the vary vector, based on the other parameters. */
-void transformVertex000(renRenderer *ren, double unif[], double attr[], 
+void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
 
     //temp holder for result of C-Inv and M (Viewing and Modelling transformation)
@@ -88,46 +91,46 @@ void transformVertex000(renRenderer *ren, double unif[], double attr[],
 	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
     mat441Multiply(scene, original, vary);
     
-    for (int i = 0; i < 3; i += 1) {
-        vary[i] = vary[i]/vary[3];
-    }
+    vecScale(4, 1/vary[renVARYW], vary, vary);
+    printf("vary before is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);    
     mat441Multiply(ren->viewport, vary, vary);
-
+    printf("vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
     //reset S and T for tex coords   
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
 
-void transformVertex(renRenderer *ren, double unif[], double attr[], 
-        double vary[]) {
-    /*Then perform the viewport transformation. */
-    /* First, copy attr S and T to vary. */
-    vary[renVARYS] = attr[renATTRS];
-    vary[renVARYT] = attr[renATTRT];
-    /* Then, do the modeling and viewing transformation. */
-    double toBeTransformed[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-    double transformed1[4], transformed2[4], transformed3[4];
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), toBeTransformed, transformed1);
-    mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), transformed1, transformed2); 
+// void transformVertex00(renRenderer *ren, double unif[], double attr[], 
+//         double vary[]) {
+//     /*Then perform the viewport transformation. */
+//     /* First, copy attr S and T to vary. */
+//     vary[renVARYS] = attr[renATTRS];
+//     vary[renVARYT] = attr[renATTRT];
+//     /* Then, do the modeling and viewing transformation. */
+//     double toBeTransformed[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
+//     double transformed1[4], transformed2[4], transformed3[4];
+//     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), toBeTransformed, transformed1);
+//     mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), transformed1, transformed2); 
     
-    printf("Transform2 is: {%f, %f, %f, %f}\n", transformed2[0], transformed2[1], transformed2[2], transformed2[3]);
-    vecScale(4, 1/transformed2[3], transformed2, transformed2);
-    mat441Multiply(ren->viewport, transformed2, transformed3);
-    //printf("Viewport is: {%f, %f, %f, %f}\n", ren->viewport[0][0], ren->viewport[0][1], ren->viewport[0][2], ren->viewport[0][3]);
-    vary[renVARYX] = transformed3[0];
-    vary[renVARYY] = transformed3[1];
-    vary[renVARYZ] = transformed3[2];
-    vary[3] = transformed3[3];
-    //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
-    vary[renVARYS] = attr[renATTRS];
-    vary[renVARYT] = attr[renATTRT];
-    /* Assign the transformed screen coordinates to vary. */
-    // vary[renVARYX] = transformed2[0];
-    // vary[renVARYY] = transformed2[1];
-    // vary[renVARYZ] = transformed2[2];
-    // vary[renVARYW] = transformed2[3];
-    //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
-}
+//     vecScale(4, 1/transformed2[3], transformed2, transformed2);
+//     mat441Multiply(ren->viewport, transformed2, transformed3);
+//     printf("Transform2 is: {%f, %f, %f, %f}\n", transformed3[0], transformed3[1], transformed3[2], transformed2[3]);
+
+//     //printf("Viewport is: {%f, %f, %f, %f}\n", ren->viewport[0][0], ren->viewport[0][1], ren->viewport[0][2], ren->viewport[0][3]);
+//     vary[renVARYX] = transformed3[0];
+//     vary[renVARYY] = transformed3[1];
+//     vary[renVARYZ] = transformed3[2];
+//     vary[3] = transformed3[3];
+//     //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
+//     vary[renVARYS] = attr[renATTRS];
+//     vary[renVARYT] = attr[renATTRT];
+//     /* Assign the transformed screen coordinates to vary. */
+//     // vary[renVARYX] = transformed2[0];
+//     // vary[renVARYY] = transformed2[1];
+//     // vary[renVARYZ] = transformed2[2];
+//     // vary[renVARYW] = transformed2[3];
+//     //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
+// }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
 rotation-translation M described by the other uniforms. If unifParent is not 
@@ -200,14 +203,14 @@ renRenderer renderer = {
         {0, 0, 0, 1}
     },
     .cameraTranslation = {0, 0, 0},
-    .projection = {0, 512, 0, 512, 0, 512},
+    // .projection = {0, 512, 0, 512, 0, 512},
     .projectionType = 0,
-    .viewport = {
-        {1, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 1}
-    }
+    // .viewport = {
+    //     {1, 0, 0, 0},
+    //     {0, 1, 0, 0},
+    //     {0, 0, 1, 0},
+    //     {0, 0, 0, 1}
+    // }
 };
 
 //move the camera
@@ -217,19 +220,27 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
     // in most video games
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == W_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[0] += 20;
+        renderer.cameraTranslation[0] += 2;
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == S_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[0] -= 20;
+        renderer.cameraTranslation[0] -= 2;
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == A_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[1] -= 20;
+        renderer.cameraTranslation[1] += 2;
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == D_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[1] += 20;
+        renderer.cameraTranslation[1] -= 2;
+    }
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == One_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[2] += 2;
+    }
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == TWO_KEY) {
+        //change Camera Position
+        renderer.cameraTranslation[2] -= 2;
     }
 }
 
@@ -242,7 +253,7 @@ void draw(void){
 }
 
 void handleTimeStep(double oldTime, double newTime) {
-    depthClearZs(renderer.depth, -9999999);
+    depthClearZs(renderer.depth, -99999);
     renUpdateViewing(&renderer);
     //redraw the scene by a new unifAnge theta as time changes
     if (floor(newTime) - floor(oldTime) >= 1.0)
@@ -270,29 +281,29 @@ int main(void) {
     double objPos[3] =  {0, 0, 0};
     double cameraPhi = M_PI/3;
     double cameraTheta = M_PI/3;
-    renLookAt(ren, objPos, 20, cameraPhi, cameraTheta);
+    renLookAt(ren, objPos, 10, cameraPhi, cameraTheta);
 
 
     //init unif for each node
     //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
 	double unifA[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.5, 150.0, 150.0, 0.0, 
-        50.0, 50.0, 20.0, 
+        0.5, 0.0, 0.0, 0.0, 
+        1.0, 1.0, 1.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifB[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.9, 140.0, 140.0, 0.0, 
-        40.0, 20.0, 10.0, 
+        0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifC[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.3, 200.0, 200.0, 0.0, 
-        50.0, 50.0, 20.0, 
+        0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     double unifD[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.7, 0.0, 0.0, 0.0, 
-        50.0, 50.0, 20.0, 
+        0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};	
     //init mesh, tex and scene nodes
@@ -308,14 +319,14 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 3, 0, 3, 0, 3) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 2, 0, 2, 0, 2) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 0, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 2, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
