@@ -11,10 +11,8 @@
 #include "040texture.c"
 #include "130renderer.c"
 
-//Define window size
-
 //Defining bounds
-#define renVARYDIMBOUND 42
+#define renVARYDIMBOUND 16
 #define renVERTNUMBOUND 1000
 
 //Attr indices
@@ -32,11 +30,11 @@
 #define renVARYY 1
 #define renVARYZ 2
 #define renVARYW 3
-#define renVARYS 3
-#define renVARYT 4
-#define renVARYR 5
-#define renVARYG 6
-#define renVARYB 7
+#define renVARYS 4
+#define renVARYT 5
+#define renVARYR 6
+#define renVARYG 7
+#define renVARYB 8
 
 //UNIF indices
 #define renUNIFR 0
@@ -81,56 +79,23 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
 
-    //temp holder for result of C-Inv and M (Viewing and Modelling transformation)
-    double scene[4][4];
-
-    //C-Inv and M
-    mat444Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), (double(*)[4])(&unif[renUNIFCAMERAVIEWING]), scene);
-
+    //temp holder for result of M (Viewing and Modelling transformation)
+    double world[4];
     //then do it over the original coords
 	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-    mat441Multiply(scene, original, vary);
-    
+    //original to world
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
+
+    //world to eye
+    mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), world, vary);
+
+    //eye to projection
     vecScale(4, 1/vary[renVARYW], vary, vary);
-    printf("vary before is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);    
     mat441Multiply(ren->viewport, vary, vary);
-    printf("vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
     //reset S and T for tex coords   
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
-
-// void transformVertex00(renRenderer *ren, double unif[], double attr[], 
-//         double vary[]) {
-//     /*Then perform the viewport transformation. */
-//     /* First, copy attr S and T to vary. */
-//     vary[renVARYS] = attr[renATTRS];
-//     vary[renVARYT] = attr[renATTRT];
-//     /* Then, do the modeling and viewing transformation. */
-//     double toBeTransformed[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-//     double transformed1[4], transformed2[4], transformed3[4];
-//     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), toBeTransformed, transformed1);
-//     mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), transformed1, transformed2); 
-    
-//     vecScale(4, 1/transformed2[3], transformed2, transformed2);
-//     mat441Multiply(ren->viewport, transformed2, transformed3);
-//     printf("Transform2 is: {%f, %f, %f, %f}\n", transformed3[0], transformed3[1], transformed3[2], transformed2[3]);
-
-//     //printf("Viewport is: {%f, %f, %f, %f}\n", ren->viewport[0][0], ren->viewport[0][1], ren->viewport[0][2], ren->viewport[0][3]);
-//     vary[renVARYX] = transformed3[0];
-//     vary[renVARYY] = transformed3[1];
-//     vary[renVARYZ] = transformed3[2];
-//     vary[3] = transformed3[3];
-//     //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
-//     vary[renVARYS] = attr[renATTRS];
-//     vary[renVARYT] = attr[renATTRT];
-//     /* Assign the transformed screen coordinates to vary. */
-//     // vary[renVARYX] = transformed2[0];
-//     // vary[renVARYY] = transformed2[1];
-//     // vary[renVARYZ] = transformed2[2];
-//     // vary[renVARYW] = transformed2[3];
-//     //printf("Vary is: {%f, %f, %f, %f}\n", vary[0], vary[1], vary[2], vary[3]);
-// }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
 rotation-translation M described by the other uniforms. If unifParent is not 
@@ -185,7 +150,7 @@ depthBuffer depth_z;
 renRenderer renderer = {
     .unifDim = 42,
     .texNum = 1,
-    .varyDim = 3+2,
+    .varyDim = 3+3,
     .attrDim = 3+2+3,
     .transformVertex = transformVertex,
     .colorPixel = colorPixel,
@@ -204,7 +169,7 @@ renRenderer renderer = {
     },
     .cameraTranslation = {0, 0, 0},
     // .projection = {0, 512, 0, 512, 0, 512},
-    .projectionType = 0,
+    .projectionType = 1,
     // .viewport = {
     //     {1, 0, 0, 0},
     //     {0, 1, 0, 0},
