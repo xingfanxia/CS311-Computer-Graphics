@@ -60,7 +60,6 @@ texture coord and unif background.*/
 void triRenderALeft(renRenderer *ren, double unif[], texTexture *tex[], 
 		double a[], double b[], double c[]) {
 
-	
 	double STvalue[ren->varyDim];
 	double sampleRGBZ[4];
 	double x[2];
@@ -160,6 +159,11 @@ is the actual method that does the drawing and pass the vertices in
 correct order*/
 void triRender(renRenderer *ren, double unif[], texTexture *tex[], double a[], 
         double b[], double c[]) { 
+	if (a[0] > ren->depth->width || a[1] > ren->depth->height || 
+		b[0] > ren->depth->width || b[1] > ren->depth->height ||
+		c[0] > ren->depth->width || c[1] > ren->depth->height) {
+		return;
+	}
 	if (a[0] < b[0] && a[0] < c[0]) {
 		triRenderALeft(ren, unif, tex, a, b, c);
 	} else if (b[0] < a[0] && b[0] < c[0]) {

@@ -1,9 +1,9 @@
 //Xingfan Xia Jan 27th
-//clang 130mainProjection.c 000pixel.o -lglfw -framework OpenGL; ./a.out
-#include <stdio.h>
+//clang 140mainClipping.c 000pixel.o -lglfw -framework OpenGL;./a.out#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include "000pixel.h"
 #include "110depth.c"
 #include "100vector.c"
@@ -91,7 +91,6 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
-     printf("vary, %f, %f, %f, %f, %f, %f\n", vary[0],vary[1],vary[2], vary[3], vary[4], vary[5]);
 }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
@@ -217,7 +216,7 @@ void draw(void){
 }
 
 void handleTimeStep(double oldTime, double newTime) {
-    depthClearZs(renderer.depth, -99999);
+    depthClearZs(renderer.depth, -1);
     renUpdateViewing(&renderer);
     //redraw the scene by a new unifAnge theta as time changes
     if (floor(newTime) - floor(oldTime) >= 1.0)
