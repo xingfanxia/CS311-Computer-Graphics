@@ -167,7 +167,7 @@ renRenderer renderer = {
     },
     .cameraTranslation = {0, 0, 0},
     // .projection = {0, 512, 0, 512, 0, 512},
-    .projectionType = 0,
+    .projectionType = 1,
     // .viewport = {
     //     {1, 0, 0, 0},
     //     {0, 1, 0, 0},
