@@ -40,6 +40,10 @@ Camera activities means inverse of its activities on the model. So just implemen
 
 Implement projection to make the modeling world more realistic and the view point more from a human perspective.
 
+### 140 Clipping
+
+Realistic clipping near the camera. Also avoids fatal `division by 0 errors`.
+
 ### Bugs
 
 - ~~Sphere can be rendered as mesh but rendering it in the scene node throws a bus error.~~ Solved by updating constant `renVERTNUMBOUND` to 1000.
