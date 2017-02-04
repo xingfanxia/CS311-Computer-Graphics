@@ -1,4 +1,4 @@
-//Xingfan Xia, January 21th
+//Xingfan Xia, Feb 2nd
 /*** 2 x 2 Matrices ***/
 
 /* Pretty-prints the given matrix, with one line of text per row of matrix. */

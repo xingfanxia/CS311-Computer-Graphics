@@ -1,4 +1,4 @@
-//Xingfan Xia, January 20th
+//Xingfan Xia, Feb 4rd
 
 
 //To Generate tex coord S and T at vector x by applying formulae learnt in class

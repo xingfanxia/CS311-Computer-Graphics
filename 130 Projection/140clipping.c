@@ -1,3 +1,4 @@
+//Xingfan Xia Feb 3rd, get help from Yanhan Lyu for the structure of cases
 //vecScale by renVaryDim and view
 void scale(renRenderer *ren, double vector[renVARYDIMBOUND], double out[renVARYDIMBOUND]) {
 	double view[4] = {vector[renVARYX], vector[renVARYY], vector[renVARYZ], vector[renVARYW]};
@@ -74,7 +75,7 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, two, ClippedTwo);
         scale(ren, tempVecB, newB);
         scale(ren, tempVecC, newC);
-        //printf("0");
+
         triRender(ren, unif, tex, ClippedOne, newB, ClippedTwo);
         triRender(ren, unif, tex, ClippedTwo, newB, newC);
     } else if ((tempVecB[3] <= 0 || tempVecB[2]>tempVecB[3]) && 
@@ -86,7 +87,7 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, two, ClippedTwo);
         scale(ren, tempVecA, newA);
         scale(ren, tempVecC, newC);
-        //printf("1");
+
         triRender(ren, unif, tex, newA, ClippedOne, newC);
         triRender(ren, unif, tex, ClippedOne, ClippedTwo, newC);
     } else if ((tempVecC[3] <= 0 || tempVecC[2]>tempVecC[3]) && 
@@ -99,7 +100,6 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, tempVecA, newA);
         scale(ren, tempVecB, newB);
 
-        //printf("2");
         triRender(ren, unif, tex, newB, ClippedOne, ClippedTwo);
         triRender(ren, unif, tex, newB, ClippedTwo, newA);
     }else if ((tempVecA[3] <= 0 || tempVecA[2]>tempVecA[3]) && (tempVecB[3] <= 0 || tempVecB[2]>tempVecB[3]) 
@@ -111,7 +111,6 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, two, ClippedTwo);
         scale(ren, tempVecC, newC);
 
-        //printf("3");
         triRender(ren, unif, tex, ClippedOne, ClippedTwo, newC);
     }else if ((tempVecA[3] <= 0 || tempVecA[2]>tempVecA[3]) && (tempVecC[3] <= 0 || tempVecC[2]>tempVecC[3]) 
         && !(tempVecB[3] <= 0 || tempVecB[2]>tempVecB[3])){
@@ -122,7 +121,6 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, two, ClippedTwo);
         scale(ren, tempVecB, newB);
 
-        //printf("4");
         triRender(ren, unif, tex, ClippedOne, newB, ClippedTwo);
     } else if ((tempVecB[3] <= 0 || tempVecB[2]>tempVecB[3]) && (tempVecC[3] <= 0 || tempVecC[2]>tempVecC[3]) 
         && !(tempVecA[3] <= 0 || tempVecA[2]>tempVecA[3])){
@@ -133,15 +131,12 @@ void clipRender(renRenderer *ren, double unif[], texTexture *tex[], double a[],
         scale(ren, two, ClippedTwo);
         scale(ren, tempVecA, newA);
 
-        //printf("5");
         triRender(ren, unif, tex, ClippedTwo, newA, ClippedOne);
     } else if (!(tempVecB[3] <= 0 || tempVecB[2]>tempVecB[3]) && !(tempVecC[3] <= 0 || tempVecC[2]>tempVecC[3]) 
         && !(tempVecA[3] <= 0 || tempVecA[2]>tempVecA[3])){
         scale(ren, tempVecA, newA);
         scale(ren, tempVecB, newB);
         scale(ren, tempVecC, newC);
-        //printf("6");
-        //printf("a, %f, %f, %f, %f\n", newB[0], newB[1], newB[2], newB[3]);
         triRender(ren, unif, tex, newA, newB, newC);
     }
 } 
