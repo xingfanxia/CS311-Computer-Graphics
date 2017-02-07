@@ -139,19 +139,21 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     vecCopy(3, &vary[renVARYNORMALX], tempNormal);
     vecCopy(3, &vary[renVARYWORLDX], tempWorldPixel);
     //calcualte vectorLight
-    printf("lightPosition: %f %f %f\n", lightPosition[0], lightPosition[1], lightPosition[2]);
-    printf("lightRGB: %f %f %f\n", lightRGB[0], lightRGB[1], lightRGB[2]);
-    printf("tempNormal: %f %f %f\n", tempNormal[0], tempNormal[1], tempNormal[2]);
-    printf("tempWorldPixel: %f %f %f\n", tempWorldPixel[0], tempWorldPixel[1], tempWorldPixel[2]);
+    // printf("lightPosition: %f %f %f\n", lightPosition[0], lightPosition[1], lightPosition[2]);
+    // printf("lightRGB: %f %f %f\n", lightRGB[0], lightRGB[1], lightRGB[2]);
+    // printf("tempNormal: %f %f %f\n", tempNormal[0], tempNormal[1], tempNormal[2]);
+    // printf("tempWorldPixel: %f %f %f\n", tempWorldPixel[0], tempWorldPixel[1], tempWorldPixel[2]);
     vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
+    vecUnit(3, vectorLight, vectorLight);
+    // printf("vectorLight: %f %f %f\n", vectorLight[0], vectorLight[1], vectorLight[2]);
     dotProduct = vecDot(3, tempNormal, vectorLight);
-    printf("dotProduct: %f\n", dotProduct);
+    // printf("dotProduct: %f\n", dotProduct);
     d = max(0, dotProduct);
-    printf("d value is: %f\n", d);
+    // printf("d value is: %f\n", d);
     for (int i = 0; i < 3; i += 1) {
         rgb[i] = d * lightRGB[i] * s_rgb[i];
     }
-    printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
+    // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
     // rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
     // rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
     // rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
@@ -174,9 +176,13 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     vary[renVARYWORLDZ] = attr[renATTRZ];
 
     //write in attributes to vary from attr
-    vary[renVARYNORMALX] = attr[renATTRNORMALX];
-    vary[renVARYNORMALY] = attr[renATTRNORMALY];
-    vary[renVARYNORMALZ] = attr[renATTRNORMALZ];
+    double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, tempNormal);
+    vecUnit(4, tempNormal, tempNormal);
+    vary[renVARYNORMALX] = tempNormal[0];
+    vary[renVARYNORMALY] = tempNormal[1];
+    vary[renVARYNORMALZ] = tempNormal[2];   
+
 
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
@@ -202,7 +208,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
         }
     }
 
-    setLight(unif, 2, 2, 2, 1.0, 1.0, 1.0);
+    setLight(unif, 0.75, 0.75, 0.5, 1.0, 1.0, 1.0);
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
     mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
@@ -361,7 +367,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0};
     double unifB[3+1+3+3+16+16+6] = {1.0, 1.0, 1.0, 
-        0.0, 0.0, 0.0, 0.0, 
+        0.5, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
@@ -394,21 +400,21 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 2, 0, 2, 0, 2) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 0.5, 0, 0.5, 0, 0.5) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 2, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.5, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
-    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, NULL, NULL) != 0){
+    } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
-    // } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
-    //     return 8;
+    } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
+        return 8;
     // } else if (sceneInitialize(&nodeC, ren, unifC, tex, mesh4, NULL, NULL) != 0){
     //     return 9;
 
