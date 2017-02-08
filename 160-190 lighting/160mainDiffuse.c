@@ -81,6 +81,7 @@
 #define D_KEY 68
 #define One_KEY 49
 #define TWO_KEY 50
+#define ENTER_KEY 257
 
 //max macro
 #define max(a,b) \
@@ -114,7 +115,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     s_rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
     s_rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     
-    printf("s_rgb: %f %f %f\n", s_rgb[0], s_rgb[1], s_rgb[2]);
     /* Lighting 1: diffuse lighting
     R = d * lightR * surfaceR
     G = d * lightG * surfaceG
@@ -136,9 +136,11 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     //calcualte vectorLight
     vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
     vecUnit(3, vectorLight, vectorLight);
+    vecUnit(3, tempNormal, tempNormal);
     dotProduct = vecDot(3, tempNormal, vectorLight);
     d = max(0, dotProduct);
     for (int i = 0; i < 3; i += 1) {
+        //set diffuse rgb
         rgb[i] = d * lightRGB[i] * s_rgb[i];
     }
     // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
@@ -151,19 +153,17 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
     //temp holder for result of M (Viewing and Modelling transformation)
     double world[4];
+    double normalTransformed[4];
     //then do it over the original coords
-	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
-
-    
+    double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
 
     //write in attributes to vary from attr
     double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, tempNormal);
-    vecUnit(4, tempNormal, tempNormal);
-    vary[renVARYNORMALX] = tempNormal[0];
-    vary[renVARYNORMALY] = tempNormal[1];
-    vary[renVARYNORMALZ] = tempNormal[2];   
-
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, normalTransformed);
+    
+    vary[renVARYNORMALX] = normalTransformed[0];
+    vary[renVARYNORMALY] = normalTransformed[1];
+    vary[renVARYNORMALZ] = normalTransformed[2];   
 
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
@@ -291,6 +291,13 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == TWO_KEY) {
         //change Camera Position
         renderer.cameraTranslation[2] -= 2;
+    } if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == ENTER_KEY) {
+        //change Camera Position
+        if (renderer.projectionType == renORTHOGRAPHIC) {
+            renderer.projectionType = renPERSPECTIVE;
+        } else {
+            renderer.projectionType = renORTHOGRAPHIC;
+        }
     }
 }
 
@@ -326,12 +333,7 @@ int main(void) {
 
     depthBuffer *dp = &depth_z;
 
-    //set camera
-    double cameraPos[3] = {0, 0, 0};
-    double objPos[3] =  {0, 0, 0};
-    double cameraPhi = M_PI/3;
-    double cameraTheta = M_PI/3;
-    renLookAt(ren, objPos, 10, cameraPhi, cameraTheta);
+
 
 
     /*init unif for each scene node
@@ -385,14 +387,14 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 0.5, 0, 0.5, 0, 0.5) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 0.5, 0.5, 1, 0, 0.5) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 0.5, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.4, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
     	return 6;
@@ -411,6 +413,12 @@ int main(void) {
         //draw the scene
 		// draw();
         renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
+        //set camera
+        double cameraPos[3] = {0, 0, 0};
+        double objPos[3] =  {0, 0, 0};
+        double cameraPhi = M_PI/3;
+        double cameraTheta = M_PI/3;
+        renLookAt(ren, objPos, 40, cameraPhi, cameraTheta);
         pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
         printf("Controls: W for moving the Camera Up\n");

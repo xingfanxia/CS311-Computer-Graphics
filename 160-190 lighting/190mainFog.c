@@ -1,6 +1,5 @@
-//Xingfan Xia Feb 7th
-//clang 190mainFog.c 000pixel.o -lglfw -framework OpenGL;./a.out
-//clang -g 190mainFog.c 000pixel.o -lglfw -framework OpenGL;./a.out
+//Xingfan Xia Feb 7th//clang 170mainSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
+//clang -g 170mainSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
 //lldb a.out
 //lldb -> run
 #include <stdio.h>
@@ -71,10 +70,6 @@
 #define renUNIFLIGHTB 47
 #define renUNIFCAMERAWORLDPOSITION 48
 #define renUNIFSPECULARSHINENESS 51
-#define renUNIFAMBIENTLIGHTINT 52
-#define renUNIFFOGR 53
-#define renUNIFFOGG 54
-#define renUNIFFOGB 55
 
 //tex indices
 #define renTEXR 0
@@ -88,7 +83,7 @@
 #define D_KEY 68
 #define One_KEY 49
 #define TWO_KEY 50
-
+#define ENTER_KEY 257
 //max macro
 #define max(a,b) \
 ({ __typeof__ (a) _a = (a); \
@@ -127,7 +122,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     s_rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
     s_rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     
-    printf("s_rgb: %f %f %f\n", s_rgb[0], s_rgb[1], s_rgb[2]);
     /* Lighting 1: diffuse lighting
     R = d * lightR * surfaceR
     G = d * lightG * surfaceG
@@ -141,8 +135,10 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     double vectorLight[3];
     double d;
     double dotProduct;
-    //add ambient lighting
-    double ambientInt = unif[renUNIFAMBIENTLIGHTINT];
+
+    /* Lighting 3: Ambient Lighting */
+    double ambientInt = 0.3;
+
     //copy light position and lightRGB for calculation
     vecCopy(3, &unif[renUNIFLIGHTPOSITIONX], lightPosition);
     vecCopy(3, &unif[renUNIFLIGHTR], lightRGB);
@@ -151,7 +147,9 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     //calcualte vectorLight
     vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
     vecUnit(3, vectorLight, vectorLight);
+    vecUnit(3, tempNormal, tempNormal);
     dotProduct = vecDot(3, tempNormal, vectorLight);
+    //account for ambient lighting
     d = max(ambientInt, dotProduct);
     for (int i = 0; i < 3; i += 1) {
         //set diffuse rgb
@@ -160,7 +158,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 
     /* Lighting 2: specular lighting
     ReflectionDir = 2 * vecDot(vecN, vecL) * vecN - vecL
-    specInt = vecDot(cameraDir, ReflectionDir)
+    specInt = max(0, vecDot(cameraDir, ReflectionDir))^shineness
     spec_rgb = sepcInt * LightRGB * ClearCoatRGB(white here)
     rgb = spec_rgb + diffuse_rgb
     */
@@ -171,20 +169,19 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     double ClearCoatRGB[3] = {1.0, 1.0, 1.0};
     double spec_rgb[3];
     double shineness = unif[renUNIFSPECULARSHINENESS];
-    double fog_rgb[3] = {unif[renUNIFFOGR], unif[renUNIFFOGG], unif[renUNIFFOGB]};
 
     vecSubtract(3, cameraPos, tempWorldPixel, UnitCameraDirection);
     vecUnit(3, UnitCameraDirection, UnitCameraDirection);
     double tempDotProduct = vecDot(3, tempNormal, vectorLight);
-    vecScale(3, tempDotProduct, tempNormal, tempVec);
-    vecScale(3, 2, tempVec, tempVec);
+    vecScale(3, 2*tempDotProduct, tempNormal, tempVec);
+    // vecScale(3, 2, tempVec, tempVec);
     vecSubtract(3, tempVec, vectorLight, UnitReflectionDirection);
-    vecUnit(3, UnitReflectionDirection, UnitReflectionDirection);
+    // vecUnit(3, UnitReflectionDirection, UnitReflectionDirection);
 
-    double specIntensity = vecDot(3, UnitCameraDirection, UnitReflectionDirection);
+    double specIntensity = pow(max(0, vecDot(3, UnitCameraDirection, UnitReflectionDirection)), shineness);
     for (int i = 0; i < 3; i += 1) {
         //cal and add spec_rgb to overall rgb
-        spec_rgb[i] = specIntensity*lightRGB[i]*ClearCoatRGB[i]*shineness;
+        spec_rgb[i] = specIntensity*lightRGB[i]*ClearCoatRGB[i];
         rgb[i] += spec_rgb[i];
     }
 
@@ -192,13 +189,16 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     new = (z+1) * worldRGB/2 + (1- (z+1)/2)* FogRGB
     */
     // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
-    double z_value =  unif[renVARYZ];
+    double fog_rgb[3] = {0.7, 0.7, 1};
+    double z_value =  vary[renVARYZ];
     for (int i = 0; i < 3; i += 1) {
         //cal and add spec_rgb to overall rgb
         rgb[i] = ((z_value+1)/2) * rgb[i] + (1-((z_value+1)/2)) * fog_rgb[i];
     }
     // copy z value from unif
     rgb[3] = vary[renVARYZ];
+
+    // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -207,16 +207,17 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
     //temp holder for result of M (Viewing and Modelling transformation)
     double world[4];
+    double normalTransformed[4];
     //then do it over the original coords
     double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
 
     //write in attributes to vary from attr
     double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, tempNormal);
-    vecUnit(4, tempNormal, tempNormal);
-    vary[renVARYNORMALX] = tempNormal[0];
-    vary[renVARYNORMALY] = tempNormal[1];
-    vary[renVARYNORMALZ] = tempNormal[2];   
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, normalTransformed);
+    
+    vary[renVARYNORMALX] = normalTransformed[0];
+    vary[renVARYNORMALY] = normalTransformed[1];
+    vary[renVARYNORMALZ] = normalTransformed[2];   
 
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
@@ -245,7 +246,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
             unif[pos] = ren->viewing[i][j];
         }
     }
-    double cameraWorldPos[3] = {0.0, 0.0, 0.0};
+    double cameraWorldPos[3] = {2.0, 0.0, 2.0};
 
     setLight(unif, 0.75, 0.75, 0.5, 1.0, 1.0, 1.0);
     setCameraPos(unif, cameraWorldPos);
@@ -289,7 +290,7 @@ sceneNode nodeD;
 depthBuffer depth_z;
 
 renRenderer renderer = {
-    .unifDim = 56,
+    .unifDim = 52,
     .texNum = 1,
     .varyDim = 4+2+3+3+3,
     .attrDim = 3+2+3,
@@ -319,6 +320,8 @@ renRenderer renderer = {
     // }
 };
 
+double Camdistance = 40;
+double objPosUpdate[3] =  {0.0, 0.0, 0.0};
 //move the camera
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
         int altOptionIsDown, int superCommandIsDown) {
@@ -342,18 +345,28 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == One_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[2] += 2;
+        Camdistance += 10;
+        renLookAt(&renderer, objPosUpdate, Camdistance, M_PI/3, M_PI/3);
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == TWO_KEY) {
         //change Camera Position
-        renderer.cameraTranslation[2] -= 2;
-    }
+        Camdistance -= 10;
+        renLookAt(&renderer, objPosUpdate, Camdistance, M_PI/3, M_PI/3);
+    } 
+    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == ENTER_KEY) {
+        //change Camera Position
+        if (renderer.projectionType == renORTHOGRAPHIC) {
+            renderer.projectionType = renPERSPECTIVE;
+        } else {
+            renderer.projectionType = renORTHOGRAPHIC;
+        }
+    } 
 }
 
 
 void draw(void){
     //draw scene from node A
-    pixClearRGB(0.3, 0.3, 0.3);
+    pixClearRGB(0.7, 0.7, 1);
     sceneRender(&nodeA, &renderer, NULL);
     
 }
@@ -382,12 +395,7 @@ int main(void) {
 
     depthBuffer *dp = &depth_z;
 
-    //set camera
-    double cameraPos[3] = {0, 0, 0};
-    double objPos[3] =  {0, 0, 0};
-    double cameraPhi = M_PI/3;
-    double cameraTheta = M_PI/3;
-    renLookAt(ren, objPos, 10, cameraPhi, cameraTheta);
+    
 
     /*init unif for each scene node
     @first [0, 1, 2] background rgb
@@ -400,10 +408,8 @@ int main(void) {
     @[45] light rgb
     @[48] camera world position
     @[51] shineness (specular intensity between 0 and 128)
-    @[52] ambient lighting
-    @[53-55] fog color
     */
-    double unifA[3+1+3+3+16+16+6+3+1+1+3] = {
+    double unifA[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
         0.5, 0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 
@@ -412,11 +418,9 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3,
-        0.2,
-        0.3, 0.3, 0.3
+        100
     };
-    double unifB[3+1+3+3+16+16+6+3+1+1+3] = {
+    double unifB[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
         0.5, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
@@ -425,11 +429,9 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3,
-        0.2,
-        0.3, 0.3, 0.3
+        100
     };
-    double unifC[3+1+3+3+16+16+6+3+1+1+3] = {
+    double unifC[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
         0.0, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
@@ -438,11 +440,9 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3,
-        0.2,
-        0.3, 0.3, 0.3
+        100
     };
-    double unifD[3+1+3+3+16+16+6+3+1+1+3] = {
+    double unifD[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
         0.0, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
@@ -451,9 +451,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3,
-        0.2,
-        0.3, 0.3, 0.3
+        100
     }; 
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
@@ -468,14 +466,14 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 0.5, 0, 0.5, 0, 0.5) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 0.5, 0.5, 1, 0, 0.5) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 0.5, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.4, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
         return 6;
@@ -494,7 +492,13 @@ int main(void) {
         //draw the scene
         // draw();
         renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
-        pixSetKeyUpHandler(handleKeyUp);        
+        //set camera
+        double cameraPos[3] = {0, 0, 0};
+        double objPos[3] =  {0.0, 0.0, 0.0};
+        double cameraPhi = M_PI/3;
+        double cameraTheta = M_PI/3;
+        renLookAt(ren, objPos, 60, cameraPhi, cameraTheta);
+        pixSetKeyUpHandler(handleKeyUp);
         pixSetTimeStepHandler(handleTimeStep);
         printf("Controls: W for moving the Camera Up\n");
         printf("Controls: S for moving the Camera Down\n");

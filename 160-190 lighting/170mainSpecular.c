@@ -83,7 +83,7 @@
 #define D_KEY 68
 #define One_KEY 49
 #define TWO_KEY 50
-
+#define ENTER_KEY 257
 //max macro
 #define max(a,b) \
 ({ __typeof__ (a) _a = (a); \
@@ -122,7 +122,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     s_rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
     s_rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     
-    printf("s_rgb: %f %f %f\n", s_rgb[0], s_rgb[1], s_rgb[2]);
     /* Lighting 1: diffuse lighting
     R = d * lightR * surfaceR
     G = d * lightG * surfaceG
@@ -144,6 +143,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     //calcualte vectorLight
     vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
     vecUnit(3, vectorLight, vectorLight);
+    vecUnit(3, tempNormal, tempNormal);
     dotProduct = vecDot(3, tempNormal, vectorLight);
     d = max(0, dotProduct);
     for (int i = 0; i < 3; i += 1) {
@@ -153,7 +153,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 
     /* Lighting 2: specular lighting
     ReflectionDir = 2 * vecDot(vecN, vecL) * vecN - vecL
-    specInt = vecDot(cameraDir, ReflectionDir)
+    specInt = max(0, vecDot(cameraDir, ReflectionDir))^shineness
     spec_rgb = sepcInt * LightRGB * ClearCoatRGB(white here)
     rgb = spec_rgb + diffuse_rgb
     */
@@ -168,15 +168,15 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     vecSubtract(3, cameraPos, tempWorldPixel, UnitCameraDirection);
     vecUnit(3, UnitCameraDirection, UnitCameraDirection);
     double tempDotProduct = vecDot(3, tempNormal, vectorLight);
-    vecScale(3, tempDotProduct, tempNormal, tempVec);
-    vecScale(3, 2, tempVec, tempVec);
+    vecScale(3, 2*tempDotProduct, tempNormal, tempVec);
+    // vecScale(3, 2, tempVec, tempVec);
     vecSubtract(3, tempVec, vectorLight, UnitReflectionDirection);
-    vecUnit(3, UnitReflectionDirection, UnitReflectionDirection);
+    // vecUnit(3, UnitReflectionDirection, UnitReflectionDirection);
 
-    double specIntensity = vecDot(3, UnitCameraDirection, UnitReflectionDirection);
+    double specIntensity = pow(max(0, vecDot(3, UnitCameraDirection, UnitReflectionDirection)), shineness);
     for (int i = 0; i < 3; i += 1) {
         //cal and add spec_rgb to overall rgb
-        spec_rgb[i] = specIntensity*lightRGB[i]*ClearCoatRGB[i]*shineness;
+        spec_rgb[i] = specIntensity*lightRGB[i]*ClearCoatRGB[i];
         rgb[i] += spec_rgb[i];
     }
 
@@ -193,16 +193,17 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
     //temp holder for result of M (Viewing and Modelling transformation)
     double world[4];
+    double normalTransformed[4];
     //then do it over the original coords
     double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
 
     //write in attributes to vary from attr
     double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, tempNormal);
-    vecUnit(4, tempNormal, tempNormal);
-    vary[renVARYNORMALX] = tempNormal[0];
-    vary[renVARYNORMALY] = tempNormal[1];
-    vary[renVARYNORMALZ] = tempNormal[2];   
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, normalTransformed);
+    
+    vary[renVARYNORMALX] = normalTransformed[0];
+    vary[renVARYNORMALY] = normalTransformed[1];
+    vary[renVARYNORMALZ] = normalTransformed[2];   
 
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
@@ -231,7 +232,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
             unif[pos] = ren->viewing[i][j];
         }
     }
-    double cameraWorldPos[3] = {0.0, 0.0, 0.0};
+    double cameraWorldPos[3] = {2.0, 0.0, 2.0};
 
     setLight(unif, 0.75, 0.75, 0.5, 1.0, 1.0, 1.0);
     setCameraPos(unif, cameraWorldPos);
@@ -333,6 +334,13 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == TWO_KEY) {
         //change Camera Position
         renderer.cameraTranslation[2] -= 2;
+    } if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == ENTER_KEY) {
+        //change Camera Position
+        if (renderer.projectionType == renORTHOGRAPHIC) {
+            renderer.projectionType = renPERSPECTIVE;
+        } else {
+            renderer.projectionType = renORTHOGRAPHIC;
+        }
     }
 }
 
@@ -368,12 +376,7 @@ int main(void) {
 
     depthBuffer *dp = &depth_z;
 
-    //set camera
-    double cameraPos[3] = {0, 0, 0};
-    double objPos[3] =  {0, 0, 0};
-    double cameraPhi = M_PI/3;
-    double cameraTheta = M_PI/3;
-    renLookAt(ren, objPos, 10, cameraPhi, cameraTheta);
+    
 
     /*init unif for each scene node
     @first [0, 1, 2] background rgb
@@ -396,7 +399,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3
+        100
     };
     double unifB[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
@@ -407,7 +410,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3
+        100
     };
     double unifC[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
@@ -418,7 +421,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3
+        100
     };
     double unifD[3+1+3+3+16+16+6+3+1] = {
         1.0, 1.0, 1.0, 
@@ -429,7 +432,7 @@ int main(void) {
         1.0, 1.0, 1.0,
         1.0, 1.0, 1.0,
         0.0, 0.0, 0.0,
-        0.3
+        100
     }; 
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
@@ -444,14 +447,14 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 0.5, 0, 0.5, 0, 0.5) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 0.5, 0.5, 1, 0, 0.5) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 0.5, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.4, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
         return 6;
@@ -470,6 +473,12 @@ int main(void) {
         //draw the scene
         // draw();
         renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
+        //set camera
+        double cameraPos[3] = {0, 0, 0};
+        double objPos[3] =  {0.0, 0.0, 0.0};
+        double cameraPhi = M_PI/3;
+        double cameraTheta = M_PI/3;
+        renLookAt(ren, objPos, 40, cameraPhi, cameraTheta);
         pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
         printf("Controls: W for moving the Camera Up\n");

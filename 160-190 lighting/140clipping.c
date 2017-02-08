@@ -2,13 +2,15 @@
 //vecScale by renVaryDim and view
 void scale(renRenderer *ren, double vector[renVARYDIMBOUND], double out[renVARYDIMBOUND]) {
 	double view[4] = {vector[renVARYX], vector[renVARYY], vector[renVARYZ], vector[renVARYW]};
-	vecScale(4, 1/view[renVARYW], view, view);
-	mat441Multiply(ren->viewport, view, view);
+    double temp1[4];
+    double temp2[4];
+	vecScale(4, 1/view[renVARYW], view, temp1);
+	mat441Multiply(ren->viewport, temp1, temp2);
 	vecCopy(renVARYDIMBOUND, vector, out);
-	out[renVARYX] = view[renVARYX];
-	out[renVARYY] = view[renVARYY];
-	out[renVARYZ] = view[renVARYZ];
-	out[renVARYW] = view[renVARYW];
+	out[renVARYX] = temp2[renVARYX];
+	out[renVARYY] = temp2[renVARYY];
+	out[renVARYZ] = temp2[renVARYZ];
+	out[renVARYW] = temp2[renVARYW];
 	out[renVARYS] = vector[renVARYS];
 	out[renVARYT] = vector[renVARYT];
 }
