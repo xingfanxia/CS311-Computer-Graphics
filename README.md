@@ -1,4 +1,4 @@
-## Computer Graphics Exercise
+## CS311 Computer Graphics
 
 ### 020 Rasterizing Triangle
 
@@ -43,6 +43,15 @@ Implement projection to make the modeling world more realistic and the view poin
 ### 140 Clipping
 
 Realistic clipping near the camera. Also avoids fatal `division by 0 errors`.
+
+### 160~190 Lighting
+
+- 160: Add diffuse lighting
+- 170: Add specular lighting
+- 180: Add ambient lighting
+- 190: Add fog effect
+
+## Moving to Next Stage
 
 ### Bugs
 
