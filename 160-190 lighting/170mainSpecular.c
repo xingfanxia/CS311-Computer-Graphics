@@ -1,5 +1,9 @@
 //Xingfan Xia Jan 27th
-//clang 140mainClipping.c 000pixel.o -lglfw -framework OpenGL;./a.out#include <stdio.h>
+//clang 170mianSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
+//clang -g 170mianSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
+//lldb a.out
+//lldb -> run
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
@@ -21,9 +25,12 @@
 #define renATTRZ 2
 #define renATTRS 3
 #define renATTRT 4
-#define renATTRR 5
-#define renATTRG 6
-#define renATTRB 7
+#define renATTRNORMALX 5
+#define renATTRNORMALY 6
+#define renATTRNORMALZ 7
+// #define renATTRR 8
+// #define renATTRG 9
+// #define renATTRB 10
 
 //Vary indices
 #define renVARYX 0
@@ -32,9 +39,15 @@
 #define renVARYW 3
 #define renVARYS 4
 #define renVARYT 5
-#define renVARYR 6
-#define renVARYG 7
-#define renVARYB 8
+#define renVARYWORLDX 6
+#define renVARYWORLDY 7
+#define renVARYWORLDZ 8
+#define renVARYNORMALX 9
+#define renVARYNORMALY 10
+#define renVARYNORMALZ 11
+#define renVARYR 12
+#define renVARYG 13
+#define renVARYB 14
 
 //UNIF indices
 #define renUNIFR 0
@@ -50,6 +63,12 @@
 #define renUNIFAXISZ 9
 #define renUNIFISOMETRY 10
 #define renUNIFCAMERAVIEWING 26
+#define renUNIFLIGHTPOSITIONX 42
+#define renUNIFLIGHTPOSITIONY 43
+#define renUNIFLIGHTPOSITIONZ 44
+#define renUNIFLIGHTR 45
+#define renUNIFLIGHTG 46
+#define renUNIFLIGHTB 47
 
 //tex indices
 #define renTEXR 0
@@ -64,14 +83,80 @@
 #define One_KEY 49
 #define TWO_KEY 50
 
+//max macro
+#define max(a,b) \
+({ __typeof__ (a) _a = (a); \
+   __typeof__ (b) _b = (b); \
+ _a > _b ? _a : _b; })
+
+void setLight(double unif[], double light_worldX, double light_worldY, double light_worldZ,
+                double light_r, double light_g, double light_b) {
+    unif[renUNIFLIGHTPOSITIONX] = light_worldX;
+    unif[renUNIFLIGHTPOSITIONY] = light_worldY;
+    unif[renUNIFLIGHTPOSITIONZ] = light_worldZ;
+    unif[renUNIFLIGHTR] = light_r;
+    unif[renUNIFLIGHTG] = light_g;
+    unif[renUNIFLIGHTB] = light_b;
+}
+
+void copyVecsforLights(int n, int startv, double original[], double copy[]) {
+    for (int i = 0; i < n; i += 1) {
+        copy[i] = original[startv+i];
+    }
+}
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
         double vary[], double rgb[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
-    rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
-    rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
-    rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
+    //surfaceRGB
+    double s_rgb[3];
+    s_rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
+    s_rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
+    s_rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
+    
+    printf("s_rgb: %f %f %f\n", s_rgb[0], s_rgb[1], s_rgb[2]);
+    /* Lighting 1: diffuse lighting
+    R = d * lightR * surfaceR
+    G = d * lightG * surfaceG
+    B = d * lightB * surfaceB
+    where d = max(0, vecDot(vectorNormal, vectorLight))
+    */
+    double lightRGB[3];
+    double lightPosition[3];
+    double tempNormal[3];
+    double tempWorldPixel[3];
+    double vectorLight[3];
+    double d;
+    double dotProduct;
+    //copy light position and lightRGB for calculation
+    // copyVecsforLights(3, renUNIFLIGHTPOSITIONX, unif, lightPosition);
+    // copyVecsforLights(3, renUNIFLIGHTR, unif, lightRGB);
+    // copyVecsforLights(3, renVARYNORMALX, vary, tempNormal);
+    // copyVecsforLights(3, renVARYWORLDX, vary, tempWorldPixel);
+    vecCopy(3, &unif[renUNIFLIGHTPOSITIONX], lightPosition);
+    vecCopy(3, &unif[renUNIFLIGHTR], lightRGB);
+    vecCopy(3, &vary[renVARYNORMALX], tempNormal);
+    vecCopy(3, &vary[renVARYWORLDX], tempWorldPixel);
+    //calcualte vectorLight
+    // printf("lightPosition: %f %f %f\n", lightPosition[0], lightPosition[1], lightPosition[2]);
+    // printf("lightRGB: %f %f %f\n", lightRGB[0], lightRGB[1], lightRGB[2]);
+    // printf("tempNormal: %f %f %f\n", tempNormal[0], tempNormal[1], tempNormal[2]);
+    // printf("tempWorldPixel: %f %f %f\n", tempWorldPixel[0], tempWorldPixel[1], tempWorldPixel[2]);
+    vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
+    vecUnit(3, vectorLight, vectorLight);
+    // printf("vectorLight: %f %f %f\n", vectorLight[0], vectorLight[1], vectorLight[2]);
+    dotProduct = vecDot(3, tempNormal, vectorLight);
+    // printf("dotProduct: %f\n", dotProduct);
+    d = max(0, dotProduct);
+    // printf("d value is: %f\n", d);
+    for (int i = 0; i < 3; i += 1) {
+        rgb[i] = d * lightRGB[i] * s_rgb[i];
+    }
+    // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
+    // rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
+    // rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
+    // rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     rgb[3] = unif[renVARYZ];
 }
 
@@ -82,7 +167,23 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     //temp holder for result of M (Viewing and Modelling transformation)
     double world[4];
     //then do it over the original coords
-	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
+    double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
+
+    //write world position of a traingle vertex to
+    //varyings
+    vary[renVARYWORLDX] = attr[renATTRX];
+    vary[renVARYWORLDY] = attr[renATTRY];
+    vary[renVARYWORLDZ] = attr[renATTRZ];
+
+    //write in attributes to vary from attr
+    double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), tempNormal, tempNormal);
+    vecUnit(4, tempNormal, tempNormal);
+    vary[renVARYNORMALX] = tempNormal[0];
+    vary[renVARYNORMALY] = tempNormal[1];
+    vary[renVARYNORMALZ] = tempNormal[2];   
+
+
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
 
@@ -107,6 +208,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
         }
     }
 
+    setLight(unif, 0.75, 0.75, 0.5, 1.0, 1.0, 1.0);
     double rotation33[3][3];
     vecUnit(3, &unif[renUNIFAXIS], &unif[renUNIFAXIS]);
     mat33AngleAxisRotation(unif[renUNIFTHETA], &unif[renUNIFAXIS], rotation33);
@@ -146,9 +248,9 @@ sceneNode nodeD;
 depthBuffer depth_z;
 
 renRenderer renderer = {
-    .unifDim = 42,
+    .unifDim = 48,
     .texNum = 1,
-    .varyDim = 3+3,
+    .varyDim = 4+2+3+3+3,
     .attrDim = 3+2+3,
     .transformVertex = transformVertex,
     .colorPixel = colorPixel,
@@ -227,15 +329,15 @@ void handleTimeStep(double oldTime, double newTime) {
 }
 
 int main(void) {
-	renRenderer *ren = &renderer;
-	meshMesh *mesh1 = &mesher_1;
-	meshMesh *mesh2 = &mesher_2;
-	meshMesh *mesh3 = &mesher_3;
-	meshMesh *mesh4 = &mesher_4;
-	texTexture *tex[renVARYDIMBOUND];
+    renRenderer *ren = &renderer;
+    meshMesh *mesh1 = &mesher_1;
+    meshMesh *mesh2 = &mesher_2;
+    meshMesh *mesh3 = &mesher_3;
+    meshMesh *mesh4 = &mesher_4;
+    texTexture *tex[renVARYDIMBOUND];
     
-	tex[0] = &texture;
-	tex[0]->filtering = texQUADRATIC;
+    tex[0] = &texture;
+    tex[0]->filtering = texQUADRATIC;
 
     depthBuffer *dp = &depth_z;
 
@@ -247,34 +349,55 @@ int main(void) {
     renLookAt(ren, objPos, 10, cameraPhi, cameraTheta);
 
 
-    //init unif for each node
-    //first [0, 1, 2] background rgb, [3] angle theta, [4,5,6] translation vector, [7-9] rotation axis [10] isom of 4x4
-	double unifA[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
+    /*init unif for each scene node
+    @first [0, 1, 2] background rgb
+    @[3] angle theta
+    @[4,5,6] translation vector, 
+    @[7-9] rotation axis 
+    @[10] isom of 4x4
+    @[26] Camera isom
+    @[42] light position xyz
+    @[45] light rgb
+    @[48] camera world position
+    */
+    double unifA[3+1+3+3+16+16+6+3] = {1.0, 1.0, 1.0, 
         0.5, 0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifB[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0
+        0.0, 0.0, 0.0};
+    double unifB[3+1+3+3+16+16+6+3] = {1.0, 1.0, 1.0, 
+        0.5, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0
+        0.0, 0.0, 0.0};
+    double unifC[3+1+3+3+16+16+6+3] = {1.0, 1.0, 1.0, 
         0.0, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifC[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0
+        0.0, 0.0, 0.0};
+    double unifD[3+1+3+3+16+16+6+3] = {1.0, 1.0, 1.0, 
         0.0, 0.0, 0.0, 0.0, 
         0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    double unifD[3+1+3+3+16+16] = {1.0, 1.0, 1.0, 
-        0.0, 0.0, 0.0, 0.0, 
-        0.0, 0.0, 0.0, 
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};	
+        1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0
+        0.0, 0.0, 0.0}; 
     //init mesh, tex and scene nodes
     if (pixInitialize(512, 512, "Pixel Graphics") != 0) {
-		return 1;
+        return 1;
     } else if (depthInitialize(dp, 512, 512) != 0) {
         return 2;
-	// } else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
+    // } else if (meshInitializeRectangle(mesh1, 0, 400, 0, 400) != 0){
  //        return 2;
  //    } else if (meshInitializeEllipse(mesh2, 250.0, 200.0, 50.0, 50.0, 50.0) != 0){
  //        return 3;
@@ -282,17 +405,17 @@ int main(void) {
  //        return 4;
     // } else if (meshInitializeSphere(mesh1, 100, 40, 80) != 0){
     //     return 5;
-    } else if (meshInitializeBox(mesh1, 0, 2, 0, 2, 0, 2) != 0){
+    } else if (meshInitializeBox(mesh1, 0, 0.5, 0, 0.5, 0, 0.5) != 0){
         return 3;
     // } else if (meshInitializeBox(mesh2, 150.0, 200.0, 150.0, 200.0, 150.0, 200.0) != 0){
     //     return 4;
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 2, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.5, 10, 20) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
-    	return 6;
+        return 6;
     } else if (sceneInitialize(&nodeA, ren, unifA, tex, mesh1, &nodeB, NULL) != 0){
         return 7;
     } else if (sceneInitialize(&nodeB, ren, unifB, tex, mesh2, NULL, NULL) != 0){
@@ -304,9 +427,9 @@ int main(void) {
     // Why can't render sphere in scene but its mesh init without trouble 
     // } else if (sceneInitialize(&nodeD, ren, unifD, tex, mesh4, NULL, NULL) != 0){
     //     return 10;
-	}else {
+    }else {
         //draw the scene
-		// draw();
+        // draw();
         renSetFrustum(ren, renORTHOGRAPHIC, M_PI/6.0, 10.0, 10.0);
         pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
@@ -314,19 +437,19 @@ int main(void) {
         printf("Controls: S for moving the Camera Down\n");
         printf("Controls: A for moving the Camera Left\n");
         printf("Controls: D for moving the Camera Right\n");
-		pixRun();
+        pixRun();
         
         //destroy
-		texDestroy(tex[0]);
-		meshDestroy(mesh1);
-		meshDestroy(mesh2);
-		meshDestroy(mesh3);
-		meshDestroy(mesh4);
-		sceneDestroy(&nodeA);
+        texDestroy(tex[0]);
+        meshDestroy(mesh1);
+        meshDestroy(mesh2);
+        meshDestroy(mesh3);
+        meshDestroy(mesh4);
+        sceneDestroy(&nodeA);
         sceneDestroy(&nodeB);
         sceneDestroy(&nodeC);
         sceneDestroy(&nodeD);
         depthDestroy(&depth_z);
-		return 0;
-	}	
+        return 0;
+    }   
 }
