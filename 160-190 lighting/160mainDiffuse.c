@@ -130,33 +130,19 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     double d;
     double dotProduct;
     //copy light position and lightRGB for calculation
-    // copyVecsforLights(3, renUNIFLIGHTPOSITIONX, unif, lightPosition);
-    // copyVecsforLights(3, renUNIFLIGHTR, unif, lightRGB);
-    // copyVecsforLights(3, renVARYNORMALX, vary, tempNormal);
-    // copyVecsforLights(3, renVARYWORLDX, vary, tempWorldPixel);
     vecCopy(3, &unif[renUNIFLIGHTPOSITIONX], lightPosition);
     vecCopy(3, &unif[renUNIFLIGHTR], lightRGB);
     vecCopy(3, &vary[renVARYNORMALX], tempNormal);
     vecCopy(3, &vary[renVARYWORLDX], tempWorldPixel);
     //calcualte vectorLight
-    // printf("lightPosition: %f %f %f\n", lightPosition[0], lightPosition[1], lightPosition[2]);
-    // printf("lightRGB: %f %f %f\n", lightRGB[0], lightRGB[1], lightRGB[2]);
-    // printf("tempNormal: %f %f %f\n", tempNormal[0], tempNormal[1], tempNormal[2]);
-    // printf("tempWorldPixel: %f %f %f\n", tempWorldPixel[0], tempWorldPixel[1], tempWorldPixel[2]);
     vecSubtract(3, lightPosition, tempWorldPixel, vectorLight);
     vecUnit(3, vectorLight, vectorLight);
-    // printf("vectorLight: %f %f %f\n", vectorLight[0], vectorLight[1], vectorLight[2]);
     dotProduct = vecDot(3, tempNormal, vectorLight);
-    // printf("dotProduct: %f\n", dotProduct);
     d = max(0, dotProduct);
-    // printf("d value is: %f\n", d);
     for (int i = 0; i < 3; i += 1) {
         rgb[i] = d * lightRGB[i] * s_rgb[i];
     }
     // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
-    // rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
-    // rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
-    // rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     rgb[3] = unif[renVARYZ];
 }
 
@@ -169,11 +155,7 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     //then do it over the original coords
 	double original[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1};
 
-    //write world position of a traingle vertex to
-    //varyings
-    vary[renVARYWORLDX] = attr[renATTRX];
-    vary[renVARYWORLDY] = attr[renATTRY];
-    vary[renVARYWORLDZ] = attr[renATTRZ];
+    
 
     //write in attributes to vary from attr
     double tempNormal[4] = {attr[renATTRNORMALX], attr[renATTRNORMALY], attr[renATTRNORMALZ], 0};
@@ -186,7 +168,11 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
 
     //original to world
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), original, world);
-
+    //write world position of a traingle vertex to
+    //varyings
+    vary[renVARYWORLDX] = world[renATTRX];
+    vary[renVARYWORLDY] = world[renATTRY];
+    vary[renVARYWORLDZ] = world[renATTRZ];
     //world to eye
     mat441Multiply((double(*)[4])(&unif[renUNIFCAMERAVIEWING]), world, vary);
 
