@@ -142,7 +142,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
         rgb[i] = d * lightRGB[i] * s_rgb[i];
     }
     // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
-    rgb[3] = unif[renVARYZ];
+    rgb[3] = vary[renVARYZ];
 }
 
 /* Writes the vary vector, based on the other parameters. */
