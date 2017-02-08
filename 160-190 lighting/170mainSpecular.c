@@ -1,5 +1,4 @@
-//Xingfan Xia Jan 27th
-//clang 170mainSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
+//Xingfan Xia Feb 7th//clang 170mainSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
 //clang -g 170mainSpecular.c 000pixel.o -lglfw -framework OpenGL;./a.out
 //lldb a.out
 //lldb -> run

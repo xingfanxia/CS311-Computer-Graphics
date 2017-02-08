@@ -1,4 +1,4 @@
-//Xingfan Xia Jan 27th
+//Xingfan Xia Feb 7th
 //clang 180mainAmbient.c 000pixel.o -lglfw -framework OpenGL;./a.out
 //clang -g 180mainAmbient.c 000pixel.o -lglfw -framework OpenGL;./a.out
 //lldb a.out
@@ -138,6 +138,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     double vectorLight[3];
     double d;
     double dotProduct;
+    //add ambient lighting
     double ambientInt = unif[renUNIFAMBIENTLIGHTINT];
     //copy light position and lightRGB for calculation
     vecCopy(3, &unif[renUNIFLIGHTPOSITIONX], lightPosition);
@@ -389,6 +390,7 @@ int main(void) {
     @[45] light rgb
     @[48] camera world position
     @[51] shineness (specular intensity between 0 and 128)
+    @[52] ambient lighting
     */
     double unifA[3+1+3+3+16+16+6+3+1+1] = {
         1.0, 1.0, 1.0, 
