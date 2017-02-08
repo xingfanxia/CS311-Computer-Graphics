@@ -258,7 +258,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 
 
 #include "110triangle.c"
-#include "140clipping.c"
+#include "a140clipping.c"
 #include "140mesh.c"
 #include "090scene.c"
 
