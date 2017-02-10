@@ -123,6 +123,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     s_rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
     
     /* Lighting 1: diffuse lighting
+    @ d is the diffuse intensity
     R = d * lightR * surfaceR
     G = d * lightG * surfaceG
     B = d * lightB * surfaceB
@@ -182,6 +183,8 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     for (int i = 0; i < 3; i += 1) {
         //cal and add spec_rgb to overall rgb
         spec_rgb[i] = specIntensity*lightRGB[i]*ClearCoatRGB[i];
+        //set specular lighting to 0 if diffuse intensity is 0
+        if (d == 0) spec_rgb[i] = 0;
         rgb[i] += spec_rgb[i];
     }
 
