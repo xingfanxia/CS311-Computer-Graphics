@@ -1,6 +1,3 @@
-
-
-
 /*** Creating and destroying ***/
 
 /* Feel free to read the struct's members, but don't write them, except through 
@@ -86,16 +83,7 @@ struct meshGLMesh {
 
 /* Initializes an OpenGL mesh from a non-OpenGL mesh. */
 void meshGLInitialize(meshGLMesh *meshGL, meshMesh *mesh) {
-	meshGL->triNum = mesh->triNum;
-	meshGL->vertNum = mesh->vertNum;
-	meshGL->attrDim = mesh->attrDim;
-	glGenBuffers(2, meshGL->buffers);
-	glBindBuffer(GL_ARRAY_BUFFER, meshGL->buffers[0]);
-	glBufferData(GL_ARRAY_BUFFER, mesh->vertNum * mesh->attrDim * sizeof(GLdouble),
-		(GLvoid *)mesh->vert, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshGL->buffers[1]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->triNum * 3 * sizeof(GLuint),
-		(GLvoid *)mesh->tri, GL_STATIC_DRAW);
+	/* !! */
 }
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
@@ -106,21 +94,7 @@ vector. Similarly, attrLocs is an array of length attrNum, giving the location
 of the ith attribute in the active OpenGL shader program. */
 void meshGLRender(meshGLMesh *meshGL, GLuint attrNum, GLuint attrDims[], 
 		GLint attrLocs[]) {
-	glEnableVertexAttribArray(attrLocs);
-	glBindBuffer(GL_ARRAY_BUFFER, meshGL->buffers[0]);
-	//pass position
-	glVertexAttribPointer(attrLocs, attrDims[0], GL_DOUBLE, GL_FALSE, 
-		attrDims[0] * sizeof(GLdouble), BUFFER_OFFSET(0));
-	//pass tex coords
-	glVertexAttribPointer(attrLocs, attrDims[1], GL_DOUBLE, GL_FALSE, 
-		attrDims[1] * sizeof(GLdouble), BUFFER_OFFSET(attrDims[0] * sizeof(GLdouble)));
-	glVertexAttribPointer(attrLocs, attrDims[2], GL_DOUBLE, GL_FALSE, 
-		attrDims[2] * sizeof(GLdouble), BUFFER_OFFSET(attrDims[1] * sizeof(GLdouble)));
-	//pass triangles
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshGL->buffers[1]);
-	glDrawElements(GL_TRIANGLES, meshGL->triNum * 3, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
-	/* Disable the attributes when finished with them. */
-	glDisableVertexAttribArray(attrLocs);
+	/* !! */
 }
 
 /* Deallocates the resources backing the initialized OpenGL mesh. */
