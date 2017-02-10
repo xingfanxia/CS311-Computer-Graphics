@@ -185,20 +185,11 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
         rgb[i] += spec_rgb[i];
     }
 
-    /* Lighting 3: Simple Fog effect
-    new = (z+1) * worldRGB/2 + (1- (z+1)/2)* FogRGB
-    */
-    // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
-    double fog_rgb[3] = {0.7, 0.7, 1};
-    double z_value =  vary[renVARYZ];
-    for (int i = 0; i < 3; i += 1) {
-        //cal and add spec_rgb to overall rgb
-        rgb[i] = ((z_value+1)/2) * rgb[i] + (1-((z_value+1)/2)) * fog_rgb[i];
-    }
-    // copy z value from unif
-    rgb[3] = vary[renVARYZ];
 
     // printf("rgb: %f %f %f\n", rgb[0], rgb[1], rgb[2]);
+    
+    // copy z value from unif
+    rgb[3] = vary[renVARYZ];
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -320,8 +311,6 @@ renRenderer renderer = {
     // }
 };
 
-double Camdistance = 40;
-double objPosUpdate[3] =  {0.0, 0.0, 0.0};
 //move the camera
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
         int altOptionIsDown, int superCommandIsDown) {
@@ -345,28 +334,25 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == One_KEY) {
         //change Camera Position
-        Camdistance += 10;
-        renLookAt(&renderer, objPosUpdate, Camdistance, M_PI/3, M_PI/3);
+        renderer.cameraTranslation[2] += 2;
     }
     if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == TWO_KEY) {
         //change Camera Position
-        Camdistance -= 10;
-        renLookAt(&renderer, objPosUpdate, Camdistance, M_PI/3, M_PI/3);
-    } 
-    if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == ENTER_KEY) {
+        renderer.cameraTranslation[2] -= 2;
+    } if (!shiftIsDown && !controlIsDown && !altOptionIsDown && !superCommandIsDown && key == ENTER_KEY) {
         //change Camera Position
         if (renderer.projectionType == renORTHOGRAPHIC) {
             renderer.projectionType = renPERSPECTIVE;
         } else {
             renderer.projectionType = renORTHOGRAPHIC;
         }
-    } 
+    }
 }
 
 
 void draw(void){
     //draw scene from node A
-    pixClearRGB(0.7, 0.7, 1);
+    pixClearRGB(0.0, 0.0, 0.0);
     sceneRender(&nodeA, &renderer, NULL);
     
 }
@@ -473,7 +459,7 @@ int main(void) {
     //     //Why sphere can't be drawn
     // } else if (meshInitializeBox(mesh3, 200.0, 350.0, 200.0, 350.0, 200.0, 380.0) != 0) {
     //     return 4;
-    } else if (meshInitializeSphere(mesh2, 0.4, 10, 20) != 0) {
+    } else if (meshInitializeSphere(mesh2, 0.4, 20, 40) != 0) {
         return 5;
     } else if (texInitializeFile(&texture, "avatar.jpg") != 0) {
         return 6;
@@ -497,8 +483,8 @@ int main(void) {
         double objPos[3] =  {0.0, 0.0, 0.0};
         double cameraPhi = M_PI/3;
         double cameraTheta = M_PI/3;
-        renLookAt(ren, objPos, 60, cameraPhi, cameraTheta);
-        pixSetKeyUpHandler(handleKeyUp);
+        renLookAt(ren, objPos, 40, cameraPhi, cameraTheta);
+        pixSetKeyUpHandler(handleKeyUp);        
         pixSetTimeStepHandler(handleTimeStep);
         printf("Controls: W for moving the Camera Up\n");
         printf("Controls: S for moving the Camera Down\n");
