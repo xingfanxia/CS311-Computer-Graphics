@@ -134,11 +134,6 @@ void sceneRemoveChild(sceneNode *node, sceneNode *child) {
 
 /*** OpenGL ***/
 
-void vecOpenGL(int dim, GLdouble v[], GLfloat openGL[]) {
-	for (int i = 0; i < dim; i += 1)
-		openGL[i] = v[i];
-}
-
 /* Renders the node, its younger siblings, and their descendants. parent is the 
 modeling matrix at the parent of the node. If the node has no parent, then this 
 matrix is the 4x4 identity matrix. Loads the modeling transformation into 
@@ -168,28 +163,6 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 		sceneRender(node->nextSibling, parent, modelingLoc, unifNum, unifDims, unifLocs, attrNum, 
 		attrDims, attrLocs);
 	}
-	
-
-// /* Set the uniform modeling matrix. */
-// 	GLfloat modeling[4][4];
-// 	double rot[3][3], model[4][4], newModel[4][4];
-// 	mat44Isometry(node->rotation, node->translation, model);
-// 	mat444Multiply(parent, model, newModel);
-// 	mat44OpenGL(newModel, modeling);
-// 	glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)modeling);
-
-// 	glUniform2fv(unifLocs[0], 1, (GLfloat *) node->unif);
-// /* Render the mesh, the children, and the younger siblings. */
-// 	meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
-// /* Then, call sceneRender recursively on its first child/next sibling
-// if there are any. */
-// 	if (node->firstChild != NULL) {
-// 		sceneRender(node->firstChild, newModel, modelingLoc, 
-// 			unifNum, unifDims, unifLocs, attrNum, attrDims, attrLocs);
-// 	}
-// 	if (node->nextSibling != NULL) {
-// 		sceneRender(node->nextSibling, parent, modelingLoc, 
-// 			unifNum, unifDims, unifLocs, attrNum, attrDims, attrLocs);
-// 	}
 }
+
 
