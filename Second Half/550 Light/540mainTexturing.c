@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
+// #include <stb_image.h>
 #include <GLFW/glfw3.h>
 
 #include "500shader.c"
@@ -16,15 +17,22 @@
 #include "510mesh.c"
 #include "520matrix.c"
 #include "520camera.c"
-#include "530scene.c"
+#include "540texture.c"
+#include "540scene.c"
 
 GLdouble alpha = 0.0;
 GLuint program;
 GLint attrLocs[3];
 GLint viewingLoc, modelingLoc;
 GLint unifLocs[1];
+GLint texCoordsLoc[1], textureLoc[1];
 camCamera cam;
+
 /* Allocate three meshes and three scene graph nodes. */
+texTexture rootTex, childTex, siblingTex;
+texTexture *rootTexList[1] = {&rootTex};
+texTexture *childTexList[1] = {&childTex};
+texTexture *siblingTexList[1] = {&siblingTex};
 meshGLMesh rootMesh, childMesh, siblingMesh;
 sceneNode rootNode, childNode, siblingNode;
 
@@ -46,17 +54,17 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		camSwitchProjectionType(&cam);
 	} else if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_O)
+		if (key == GLFW_KEY_W)
 			camAddTheta(&cam, -0.1);
-		else if (key == GLFW_KEY_P)
+		else if (key == GLFW_KEY_S)
 			camAddTheta(&cam, 0.1);
-		else if (key == GLFW_KEY_I)
+		else if (key == GLFW_KEY_A)
 			camAddPhi(&cam, -0.1);
-		else if (key == GLFW_KEY_K)
+		else if (key == GLFW_KEY_D)
 			camAddPhi(&cam, 0.1);
-		else if (key == GLFW_KEY_U)
+		else if (key == GLFW_KEY_Q)
 			camAddDistance(&cam, -0.1);
-		else if (key == GLFW_KEY_J)
+		else if (key == GLFW_KEY_E)
 			camAddDistance(&cam, 0.1);
 	}
 }
@@ -66,6 +74,24 @@ midway through, then does not properly deallocate all resources. But that's
 okay, because the program terminates almost immediately after this function 
 returns. */
 int initializeScene(void) {
+    /* Initialize textures. */
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+    if (texInitializeFile(&rootTex, "tree.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        glfwTerminate();
+        return 7;
+    }
+    if (texInitializeFile(&childTex, "trunk.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        glfwTerminate();
+        return 8;
+    }
+    if (texInitializeFile(&siblingTex, "water.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        glfwTerminate();
+        return 9;
+    }
 	/* Initialize meshes. */
 	meshMesh mesh;
 	if (meshInitializeCapsule(&mesh, 0.5, 2.0, 16, 32) != 0)
@@ -81,11 +107,11 @@ int initializeScene(void) {
 	meshGLInitialize(&siblingMesh, &mesh);
 	meshDestroy(&mesh);
 	/* Initialize scene graph nodes. */
-	if (sceneInitialize(&siblingNode, 2, &siblingMesh, NULL, NULL) != 0)
+	if (sceneInitialize(&siblingNode, 2, 1, &siblingMesh, NULL, NULL) != 0)
 		return 4;
-	if (sceneInitialize(&childNode, 2, &childMesh, NULL, NULL) != 0)
+	if (sceneInitialize(&childNode, 2, 1, &childMesh, NULL, NULL) != 0)
 		return 5;
-	if (sceneInitialize(&rootNode, 2, &rootMesh, &childNode, &siblingNode) != 0)
+	if (sceneInitialize(&rootNode, 2, 1, &rootMesh, &childNode, &siblingNode) != 0)
 		return 6;
 	/* Customize the uniforms. */
 	GLdouble trans[3] = {1.0, 0.0, 0.0};
@@ -96,6 +122,9 @@ int initializeScene(void) {
 	sceneSetUniform(&siblingNode, unif);
 	sceneSetUniform(&childNode, unif);
 	sceneSetUniform(&rootNode, unif);
+	sceneSetTexture(&siblingNode, siblingTexList);
+	sceneSetTexture(&childNode, childTexList);
+	sceneSetTexture(&rootNode, rootTexList);
 	return 0;
 }
 
@@ -104,6 +133,9 @@ void destroyScene(void) {
 	meshGLDestroy(&childMesh);
 	meshGLDestroy(&rootMesh);
 	sceneDestroyRecursively(&rootNode);
+	texDestroy(&rootTex);
+	texDestroy(&childTex);
+	texDestroy(&siblingTex);
 }
 
 /* Returns 0 on success, non-zero on failure. */
@@ -116,14 +148,17 @@ int initializeShaderProgram(void) {
 		attribute vec3 normal;\
 		uniform vec2 spice;\
 		varying vec4 rgba;\
+		varying vec2 st;\
 		void main() {\
 			gl_Position = viewing * modeling * vec4(position, 1.0);\
-			rgba = vec4(texCoords, spice) + vec4(normal, 1.0);\
+			st = texCoords;\
 		}";
 	GLchar fragmentCode[] = "\
+	    uniform sampler2D texture;\
 		varying vec4 rgba;\
+		varying vec2 st;\
 		void main() {\
-			gl_FragColor = rgba;\
+			gl_FragColor = texture2D(texture, st);\
 		}";
 	program = makeProgram(vertexCode, fragmentCode);
 	if (program != 0) {
@@ -134,6 +169,9 @@ int initializeShaderProgram(void) {
 		viewingLoc = glGetUniformLocation(program, "viewing");
 		modelingLoc = glGetUniformLocation(program, "modeling");
 		unifLocs[0] = glGetUniformLocation(program, "spice");
+		/* Don't forget to record the new locations. */
+		texCoordsLoc[0] = glGetAttribLocation(program, "texCoords");
+		textureLoc[0] = glGetUniformLocation(program, "texture");
 	}
 	return (program == 0);
 }
@@ -143,19 +181,19 @@ void render(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
 	camRender(&cam, viewingLoc);
-	/* This animation code is different from that in 520mainCamera.c. */
+
 	GLdouble rot[3][3], identity[4][4], axis[3] = {1.0, 1.0, 1.0};
 	vecUnit(3, axis, axis);
 	alpha += 0.01;
 	mat33AngleAxisRotation(alpha, axis, rot);
 	sceneSetRotation(&rootNode, rot);
 	sceneSetOneUniform(&rootNode, 0, 0.5 + 0.5 * sin(alpha * 7.0));
-	/* This rendering code is different from that in 520mainCamera.c. */
+
 	mat44Identity(identity);
 	GLuint unifDims[1] = {2};
 	GLuint attrDims[3] = {3, 2, 3};
 	sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 3, 
-		attrDims, attrLocs);
+		attrDims, attrLocs, textureLoc);
 }
 
 int main(void) {
