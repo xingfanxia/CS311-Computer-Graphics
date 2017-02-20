@@ -1,6 +1,4 @@
-
-
-
+/*@modified by Xingfan Xia with help from Yanhan Lyu and Elsa Wang*/
 /*** Creation and destruction ***/
 
 /* Feel free to read from this struct's members, but don't write to them except 
@@ -14,7 +12,6 @@ struct sceneNode {
 	meshGLMesh *meshGL;
 	sceneNode *firstChild, *nextSibling;
 	texTexture **tex;
-	GLuint texNum;
 };
 
 /* Initializes a sceneNode struct. The translation and rotation are initialized to trivial values. The user must remember to call sceneDestroy or 
@@ -43,8 +40,6 @@ void sceneDestroy(sceneNode *node) {
 	node->unif = NULL;
 }
 
-
-
 /*** Accessors ***/
 
 /* Copies the unifDim-dimensional vector from unif into the node. */
@@ -57,13 +52,16 @@ void sceneSetOneUniform(sceneNode *node, int index, double unif) {
 	node->unif[index] = unif;
 }
 
-void sceneSetTexture(sceneNode *node, texTexture **tex) {
+/* Set Texture */
+void sceneSetTexture(sceneNode *node, texTexture *tex[]){
 	node->tex = tex;
-}
 
+}
+/* Set all Texture */
 void sceneSetOneTexture(sceneNode *node, int index, texTexture *tex) {
 	node->tex[index] = tex;
 }
+
 /* Calls sceneDestroy recursively on the node's descendants and younger 
 siblings, and then on the node itself. */
 void sceneDestroyRecursively(sceneNode *node) {
@@ -145,6 +143,8 @@ void sceneRemoveChild(sceneNode *node, sceneNode *child) {
 
 /*** OpenGL ***/
 
+
+
 /* Renders the node, its younger siblings, and their descendants. parent is the 
 modeling matrix at the parent of the node. If the node has no parent, then this 
 matrix is the 4x4 identity matrix. Loads the modeling transformation into 
@@ -152,7 +152,8 @@ modelingLoc. The attribute information exists to be passed to meshGLRender. The
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
 		GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-		GLuint attrNum, GLuint attrDims[], GLint attrLocs[], GLint textureLocs[]) {
+		GLuint attrNum, GLuint attrDims[], GLint attrLocs[],
+		GLint textureLocs[]) {
 	/* Set the uniform modeling matrix. */
 	GLdouble isom[4][4];
 	GLdouble modeling[4][4];
@@ -161,77 +162,41 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 	mat444Multiply(isom, parent, modeling);
 	mat44OpenGL(modeling, newModeling);
 	glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *) newModeling);
-	
-	/* Setting up texture */
-	for (int i = 0; i < node->texNum; i++) {
-		//How to format string?
-		switch (i) {
-			case 0:
-				texRender(node->tex[i], GL_TEXTURE0, i, textureLocs[0]);
-			case 1:
-				texRender(node->tex[i], GL_TEXTURE1, i, textureLocs[0]);
-			case 2:
-				texRender(node->tex[i], GL_TEXTURE2, i, textureLocs[0]);
-			case 3:
-				texRender(node->tex[i], GL_TEXTURE3, i, textureLocs[0]);
-			case 4:
-				texRender(node->tex[i], GL_TEXTURE4, i, textureLocs[0]);
-			case 5:
-				texRender(node->tex[i], GL_TEXTURE5, i, textureLocs[0]);
-			case 6:
-				texRender(node->tex[i], GL_TEXTURE6, i, textureLocs[0]);
-			case 7:
-				texRender(node->tex[i], GL_TEXTURE7, i, textureLocs[0]);
-		}
-	}
 
 	/* Set the other uniforms. The casting from double to float is annoying. */
-	for (int i = 0; i < node->unifDim; i++) {
-		GLfloat v[unifDims[i]];
-		vecOpenGL(unifDims[i], &node->unif[i], v);
-		switch (unifDims[i]) {
-			case 1:
-				glUniform1f(unifLocs[i], (GLfloat)v[0]);
-			case 2:
-				glUniform2f(unifLocs[i], (GLfloat)v[0], (GLfloat)v[1]);
-			case 3:
-				glUniform3f(unifLocs[i], (GLfloat)v[0], (GLfloat)v[1], (GLfloat)v[2]);
-			case 4:		
-				glUniform4f(unifLocs[i], (GLfloat)v[0], (GLfloat)v[1], (GLfloat)v[2], (GLfloat)v[3]);
-		}
+	double temp_unif1[1], temp_unif2[2], temp_unif3[3], temp_unif4[4];
+	int offset = 0;
+	for (int i = 0; i < unifNum; i++) {
+	    if (unifDims[i] == 1){
+	    	vecCopy(1, &node->unif[offset], temp_unif1);
+            glUniform1f(unifLocs[i], temp_unif1[0]);
+	    } else if (unifDims[i] == 2){
+	    	vecCopy(2, &node->unif[offset], temp_unif2);
+            glUniform2f(unifLocs[i], temp_unif2[0], temp_unif2[1]);
+	    } else if  (unifDims[i] == 3){
+	    	vecCopy(3, &node->unif[offset], temp_unif3);
+            glUniform3f(unifLocs[i], temp_unif3[0], temp_unif3[1], temp_unif3[2]);
+	    } else if  (unifDims[i] == 4){
+	    	vecCopy(4, &node->unif[offset], temp_unif4);
+            glUniform4f(unifLocs[i], temp_unif4[0], temp_unif4[1],temp_unif4[2],temp_unif4[3]);
+     
+	    }
+        offset = offset + unifDims[i];
 	}
-	/* Render the mesh, the children, and the younger siblings. */
+	/* bind textures. */
+	glBindTexture(GL_TEXTURE_2D, textureLocs[0]);
+	glUniform1i(textureLocs[0], 0);
+	texRender(*node->tex, GL_TEXTURE0, 0, textureLocs[0]);
 	meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
-
-	for (int i = 0; i < node->texNum; i++) {
-		switch (i) {
-			case 0:
-				texUnrender(node->tex[i], GL_TEXTURE0);
-			case 1:
-				texUnrender(node->tex[i], GL_TEXTURE1);
-			case 2:
-				texUnrender(node->tex[i], GL_TEXTURE2);
-			case 3:
-				texUnrender(node->tex[i], GL_TEXTURE3);
-			case 4:
-				texUnrender(node->tex[i], GL_TEXTURE4);
-			case 5:
-				texUnrender(node->tex[i], GL_TEXTURE5);
-			case 6:
-				texUnrender(node->tex[i], GL_TEXTURE6);
-			case 7:
-				texUnrender(node->tex[i], GL_TEXTURE7);			 
-		}
-	}
-	//render child/sib if possible
-	if (node->firstChild != NULL ){
-		sceneRender(node->firstChild, modeling, modelingLoc, unifNum, unifDims, unifLocs, attrNum, 
-		attrDims, attrLocs, textureLocs);
-	} 
-	if (node->nextSibling != NULL){
-		sceneRender(node->nextSibling, parent, modelingLoc, unifNum, unifDims, unifLocs, attrNum, 
-		attrDims, attrLocs, textureLocs);
-	}
+	texUnrender(*node->tex, GL_TEXTURE0);
+    if (node->firstChild != NULL) {
+        sceneRender(node->firstChild, modeling, modelingLoc, 
+		unifNum, unifDims, unifLocs, attrNum, attrDims, attrLocs, textureLocs);
+    }
+    if (node->nextSibling != NULL) {
+        sceneRender(node->nextSibling, parent, modelingLoc, 
+		unifNum, unifDims, unifLocs, attrNum, attrDims, attrLocs, textureLocs);
+    }
 }
 
 

@@ -1,15 +1,12 @@
-/* @author Xingfan Xia */
-
-
-/* On macOS, compile with...
-    clang 540mainTexturing.c -lglfw -framework OpenGL; ./a.out
+/* @author Xingfan XIa
+Run by 
+    clang 550mainLighting.c -lglfw -framework OpenGL; ./a.out
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
-// #include <stb_image.h>
 #include <GLFW/glfw3.h>
 
 #include "500shader.c"
@@ -19,23 +16,34 @@
 #include "520camera.c"
 #include "540texture.c"
 #include "540scene.c"
+#include "550light.c"
 
 GLdouble alpha = 0.0;
 GLuint program;
 GLint attrLocs[3];
 GLint viewingLoc, modelingLoc;
-GLint unifLocs[1];
-//init tex locs
+GLint unifLocs[2];
 GLint texCoordsLoc[1], textureLoc[1];
-camCamera cam;
 
-/* Allocate three meshes and three scene graph nodes. */
+//init light vars
+GLint lightPosLoc, lightColLoc, lightAttrLoc, lightDirLoc, lightCosLoc;
+camCamera cam;
+lightLight testLight;
+
+//light global setup
+GLdouble lightTrans[3] = {0.0,10.0,0.0};
+GLdouble lightCol[3] = {1.0,1.0,1.0};
+GLdouble lightAttr[3] = {1.0,0.0,0.0};
+
+/* Allocate three textures, three meshes and three scene graph nodes. */
 texTexture rootTex, childTex, siblingTex;
-texTexture *rootTexList[1] = {&rootTex};
-texTexture *childTexList[1] = {&childTex};
-texTexture *siblingTexList[1] = {&siblingTex};
+texTexture *rootTexP[1] = {&rootTex};
+texTexture *childTexP[1] = {&childTex};
+texTexture *siblingTexP[1] = {&siblingTex};
 meshGLMesh rootMesh, childMesh, siblingMesh;
 sceneNode rootNode, childNode, siblingNode;
+
+
 
 void handleError(int error, const char *description) {
 	fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -75,24 +83,14 @@ midway through, then does not properly deallocate all resources. But that's
 okay, because the program terminates almost immediately after this function 
 returns. */
 int initializeScene(void) {
+    /* Initialize light. */
+    lightSetTranslation(&testLight, lightTrans);
+    lightSetColor(&testLight, lightCol);
+    lightSetAttenuation(&testLight, lightAttr);
     /* Initialize textures. */
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
-    if (texInitializeFile(&rootTex, "tree.jpg", GL_LINEAR, GL_LINEAR, 
-        GL_CLAMP, GL_CLAMP) != 0) {
-        glfwTerminate();
-        return 7;
-    }
-    if (texInitializeFile(&childTex, "trunk.jpg", GL_LINEAR, GL_LINEAR, 
-        GL_CLAMP, GL_CLAMP) != 0) {
-        glfwTerminate();
-        return 8;
-    }
-    if (texInitializeFile(&siblingTex, "water.jpg", GL_LINEAR, GL_LINEAR, 
-        GL_CLAMP, GL_CLAMP) != 0) {
-        glfwTerminate();
-        return 9;
-    }
+    
 	/* Initialize meshes. */
 	meshMesh mesh;
 	if (meshInitializeCapsule(&mesh, 0.5, 2.0, 16, 32) != 0)
@@ -108,24 +106,36 @@ int initializeScene(void) {
 	meshGLInitialize(&siblingMesh, &mesh);
 	meshDestroy(&mesh);
 	/* Initialize scene graph nodes. */
-	if (sceneInitialize(&siblingNode, 2, 1, &siblingMesh, NULL, NULL) != 0)
+	if (sceneInitialize(&siblingNode, 6, 1, &siblingMesh, NULL, NULL) != 0)
 		return 4;
-	if (sceneInitialize(&childNode, 2, 1, &childMesh, NULL, NULL) != 0)
+	if (sceneInitialize(&childNode, 6, 1, &childMesh, NULL, NULL) != 0)
 		return 5;
-	if (sceneInitialize(&rootNode, 2, 1, &rootMesh, &childNode, &siblingNode) != 0)
+	if (sceneInitialize(&rootNode, 6, 1, &rootMesh, &childNode, &siblingNode) != 0)
 		return 6;
+    if (texInitializeFile(&rootTex, "water.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        return 7;
+    }
+    if (texInitializeFile(&childTex, "trunk.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        return 8;
+    }
+    if (texInitializeFile(&siblingTex, "tree.jpg", GL_LINEAR, GL_LINEAR, 
+        GL_CLAMP, GL_CLAMP) != 0) {
+        return 9;
+    }
 	/* Customize the uniforms. */
 	GLdouble trans[3] = {1.0, 0.0, 0.0};
 	sceneSetTranslation(&childNode, trans);
 	vecSet(3, trans, 0.0, 1.0, 0.0);
 	sceneSetTranslation(&siblingNode, trans);
-	GLdouble unif[2] = {1.0, 1.0};
+	GLdouble unif[6] = {1.0,1.0,1.0, 1.0,1.0,1.0};
 	sceneSetUniform(&siblingNode, unif);
 	sceneSetUniform(&childNode, unif);
 	sceneSetUniform(&rootNode, unif);
-	sceneSetTexture(&siblingNode, siblingTexList);
-	sceneSetTexture(&childNode, childTexList);
-	sceneSetTexture(&rootNode, rootTexList);
+	sceneSetTexture(&siblingNode, siblingTexP);
+	sceneSetTexture(&childNode, childTexP);
+	sceneSetTexture(&rootNode, rootTexP);
 	return 0;
 }
 
@@ -142,25 +152,51 @@ void destroyScene(void) {
 /* Returns 0 on success, non-zero on failure. */
 int initializeShaderProgram(void) {
 	GLchar vertexCode[] = "\
-		uniform mat4 viewing;\
-		uniform mat4 modeling;\
-		attribute vec3 position;\
-		attribute vec2 texCoords;\
-		attribute vec3 normal;\
-		uniform vec2 spice;\
-		varying vec4 rgba;\
-		varying vec2 st;\
-		void main() {\
-			gl_Position = viewing * modeling * vec4(position, 1.0);\
-			st = texCoords;\
-		}";
-	GLchar fragmentCode[] = "\
-	    uniform sampler2D texture;\
-		varying vec4 rgba;\
-		varying vec2 st;\
-		void main() {\
-			gl_FragColor = texture2D(texture, st);\
-		}";
+        uniform mat4 viewing;\
+        uniform mat4 modeling;\
+        attribute vec3 position;\
+        attribute vec2 texCoords;\
+        attribute vec3 normal;\
+        varying vec3 fragPos;\
+        varying vec3 normalDir;\
+        varying vec2 st;\
+        void main() {\
+            vec4 worldPos = modeling * vec4(position, 1.0);\
+            gl_Position = viewing * worldPos;\
+            fragPos = vec3(worldPos);\
+            normalDir = vec3(modeling * vec4(normal, 0.0));\
+            st = texCoords;\
+        }";
+    GLchar fragmentCode[] = "\
+        uniform sampler2D texture0;\
+        uniform vec3 specular;\
+        uniform vec3 camPos;\
+        uniform vec3 lightPos;\
+        uniform vec3 lightCol;\
+        uniform vec3 lightAttr;\
+        varying vec3 fragPos;\
+        varying vec3 normalDir;\
+        varying vec2 st;\
+        void main() {\
+            vec3 surfCol = vec3(texture2D(texture0, st));\
+            vec3 norDir = normalize(normalDir);\
+            vec3 litDir = normalize(lightPos - fragPos);\
+            vec3 camDir = normalize(camPos - fragPos);\
+            vec3 refDir = 2.0 * dot(litDir, norDir) * norDir - litDir;\
+            float dist = distance(lightPos, fragPos);\
+            float attenuation = lightAttr[0] + lightAttr[1] * dist + lightAttr[2] * dist * dist;\
+            float diffInt = dot(norDir, litDir) / attenuation;\
+            float specInt = dot(refDir, camDir);\
+            if (diffInt <= 0.0 || specInt <= 0.0)\
+                specInt = 0.0;\
+            float ambInt = 0.1;\
+            if (diffInt <= ambInt)\
+                diffInt = ambInt;\
+            vec3 diffLight = diffInt * lightCol * surfCol;\
+            float shininess = 100.0;\
+            vec3 specLight = pow(specInt / attenuation, shininess) * lightCol * specular;\
+            gl_FragColor = vec4(diffLight + specLight, 1.0);\
+        }";
 	program = makeProgram(vertexCode, fragmentCode);
 	if (program != 0) {
 		glUseProgram(program);
@@ -169,11 +205,17 @@ int initializeShaderProgram(void) {
 		attrLocs[2] = glGetAttribLocation(program, "normal");
 		viewingLoc = glGetUniformLocation(program, "viewing");
 		modelingLoc = glGetUniformLocation(program, "modeling");
-		unifLocs[0] = glGetUniformLocation(program, "spice");
-		/* Don't forget to record the new locations. */
-		texCoordsLoc[0] = glGetAttribLocation(program, "texCoords");
-		textureLoc[0] = glGetUniformLocation(program, "texture");
+		lightPosLoc = glGetUniformLocation(program, "lightPos");
+		lightColLoc = glGetUniformLocation(program, "lightCol");
+		lightAttrLoc = glGetUniformLocation(program, "lightAttr");
+		unifLocs[0] = glGetUniformLocation(program, "specular");
+		unifLocs[1] = glGetUniformLocation(program, "camPos");
+		textureLoc[0] = glGetUniformLocation(program, "texture0");
+		
 	}
+	else {
+	    printf("The programs are not working!\n");
+    }
 	return (program == 0);
 }
 
@@ -182,19 +224,17 @@ void render(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
 	camRender(&cam, viewingLoc);
+    lightRender(&testLight, lightPosLoc, lightColLoc, lightAttrLoc);
 
 	GLdouble rot[3][3], identity[4][4], axis[3] = {1.0, 1.0, 1.0};
 	vecUnit(3, axis, axis);
 	alpha += 0.01;
 	mat33AngleAxisRotation(alpha, axis, rot);
 	sceneSetRotation(&rootNode, rot);
-	sceneSetOneUniform(&rootNode, 0, 0.5 + 0.5 * sin(alpha * 7.0));
-
 	mat44Identity(identity);
-	GLuint unifDims[1] = {2};
+	GLuint unifDims[2] = {3, 3};
 	GLuint attrDims[3] = {3, 2, 3};
-	//render the scene with tex
-	sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 3, 
+	sceneRender(&rootNode, identity, modelingLoc, 3, unifDims, unifLocs, 3, 
 		attrDims, attrLocs, textureLoc);
 }
 
@@ -230,7 +270,7 @@ int main(void) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    //cleanup
+    //clean up
     glDeleteProgram(program);
     destroyScene();
 	glfwDestroyWindow(window);
