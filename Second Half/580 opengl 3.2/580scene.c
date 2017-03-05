@@ -24,9 +24,8 @@ int sceneInitialize(sceneNode *node, GLuint unifDim, GLuint texNum,
     if (node->unif == NULL)
         return 1;
     node->tex = (texTexture **)&(node->unif[unifDim]);
-	mat33Identity(node->rotation);
+    mat33Identity(node->rotation);
 	vecSet(3, node->translation, 0.0, 0.0, 0.0);
-	node->texNum = texNum;
 	node->unifDim = unifDim;
 	node->meshGL = mesh;
 	node->firstChild = firstChild;
@@ -56,9 +55,8 @@ void sceneSetOneUniform(sceneNode *node, int index, double unif) {
 
 /* Set Texture */
 void sceneSetTexture(sceneNode *node, texTexture *tex[]){
-	for(int i = 0; i < node->texNum; i += 1){
-        node->tex[i] = tex[i];
-    }
+	node->tex = tex;
+
 }
 /* Set all Texture */
 void sceneSetOneTexture(sceneNode *node, int index, texTexture *tex) {
@@ -154,48 +152,47 @@ matrix is the 4x4 identity matrix. Loads the modeling transformation into
 modelingLoc. The attribute information exists to be passed to meshGLRender. The 
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
-		GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-		GLuint attrNum, GLuint attrDims[], GLint attrLocs[],
+		GLuint unifNum, GLuint unifDims[], GLint unifLocs[], GLuint vaoIndex,
 		GLint textureLocs[]) {
+	/* Set the uniform modeling matrix. */
 	GLdouble isom[4][4];
-	GLdouble resultingIsom[4][4];
+	GLdouble finalIsom[4][4];
 	mat44Isometry(node->rotation, node->translation, isom);
-	mat444Multiply(parent, isom, resultingIsom);
+	mat444Multiply(parent, isom, finalIsom);
 	GLfloat toReturn[4][4];
-	mat44OpenGL(resultingIsom, toReturn);
+	mat44OpenGL(finalIsom, toReturn);
 	glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)toReturn);
 	/* Set the other uniforms. The casting from double to float is annoying. */
 	for(int i = 0; i < unifNum; i += 1){
 	    int sum = 0;
 	    if(unifDims[i] == 1){
-	        GLfloat output[1];
+	        GLfloat answer[1];
 	        GLdouble v[1] = {node->unif[sum]};
-	        vecOpenGL(unifDims[i], v, output);
-	        glUniform1fv(unifLocs[i], 1, output);
+	        vecOpenGL(unifDims[i], v, answer);
+	        glUniform1fv(unifLocs[i], 1, answer);
 	        }
 	    else if(unifDims[i] == 2){
-	        GLfloat output[2];
+	        GLfloat answer[2];
 	        GLdouble v[2] = {node->unif[sum], node->unif[sum + 1]};
-	        vecOpenGL(unifDims[i], v, output);
-	        glUniform1fv(unifLocs[i], 1, output);
+	        vecOpenGL(unifDims[i], v, answer);
+	        glUniform2fv(unifLocs[i], 1, answer);
 	        }
 	    else if(unifDims[i] == 3){
-	        GLfloat output[3];
+	        GLfloat answer[3];
 	        GLdouble v[3] = {node->unif[sum], node->unif[sum + 1], node->unif[sum + 2]};
-	        vecOpenGL(unifDims[i], v, output);
-	        glUniform1fv(unifLocs[i], 1, output);
+	        vecOpenGL(unifDims[i], v, answer);
+	        glUniform3fv(unifLocs[i], 1, answer);
 	    }
 	    else if(unifDims[i] == 4){
-	        GLfloat output[4];
+	        GLfloat answer[4];
 	        GLdouble v[4] = {node->unif[sum], node->unif[sum + 1], node->unif[sum + 2], 
 	        node->unif[sum + 3]};
-	        vecOpenGL(unifDims[i], v, output);
-	        glUniform1fv(unifLocs[i], 1, output);
+	        vecOpenGL(unifDims[i], v, answer);
+	        glUniform4fv(unifLocs[i], 1, answer);
 	    }
 	    sum += unifDims[i];
 	}
-
-	/*render texture*/
+	/* Sets the textures to the texture units */
 	for(int i = 0; i < node->texNum; i += 1){
 	    if(i == 0)
 	        texRender(node->tex[i], GL_TEXTURE0, i, textureLocs[i]);
@@ -214,7 +211,9 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 	    if(i == 7)
 	        texRender(node->tex[i], GL_TEXTURE7, i, textureLocs[i]);
 	}
-	meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
+	/* Renders the mesh */
+	meshGLRender(node->meshGL, vaoIndex);
+	/* unrenders the appropriate number of textures */
 	for(int i = 0; i < node->texNum; i += 1){
 	    if(i == 0)
 	        texUnrender(node->tex[i], GL_TEXTURE0);
@@ -233,14 +232,14 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 	    if(i == 7)
 	        texUnrender(node->tex[i], GL_TEXTURE0);
 	}
-	/* Render the mesh, the children, and the younger siblings. */
+	/* renders the siblings and children if there are any */
 	if(node->nextSibling != NULL){
-	    sceneRender(node->nextSibling, resultingIsom, modelingLoc, unifNum, unifDims, unifLocs,
-	    attrNum, attrDims, attrLocs, textureLocs);
+	    sceneRender(node->nextSibling, finalIsom, modelingLoc, unifNum, unifDims, unifLocs, 
+	    vaoIndex, textureLocs);
 	}
 	if(node->firstChild != NULL){
-	    sceneRender(node->firstChild, resultingIsom, modelingLoc, unifNum, unifDims, unifLocs,
-	    attrNum, attrDims, attrLocs, textureLocs);
+	    sceneRender(node->firstChild, finalIsom, modelingLoc, unifNum, unifDims, unifLocs,
+	    vaoIndex, textureLocs);
 	}
 }
 
